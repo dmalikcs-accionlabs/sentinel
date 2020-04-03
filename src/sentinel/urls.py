@@ -25,7 +25,7 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns += [
-        path('media/(?P<path>.*)', django.views.static.serve, {
+        re_path('media/(?P<path>.*)', django.views.static.serve, {
             'document_root': settings.MEDIA_ROOT,
         }),
         path('__debug__/', include(debug_toolbar.urls)),

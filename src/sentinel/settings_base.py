@@ -155,6 +155,7 @@ INSTALLED_APPS = (
     'sentinel',
     'users',
     'collector',
+    'parsers'
 )
 
 # A sample logging configuration. The only tangible logging

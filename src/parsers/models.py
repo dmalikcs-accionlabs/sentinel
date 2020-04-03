@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.decorators import classonlymethod
-User =  get_user_model()
+from utils.models import BaseTimeStampField
+
+User = get_user_model()
 
 
 class MatchTypeChoice:
@@ -29,13 +31,7 @@ class MatchTypeChoice:
 MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 
 
-class BaseTimeStampField(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    deleted = models.DateTimeField(editable=False, null=True)
 
-    class Meta:
-        abstract = True
 
 
 class Template(BaseTimeStampField):

@@ -8,6 +8,8 @@ from azure.servicebus import QueueClient, Message
 import uuid
 from django.core.files.base import ContentFile
 import json
+
+
 class EmailBodyTypeChoice:
     HTML = 'h'
     TEXT = 'T'

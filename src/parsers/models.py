@@ -33,6 +33,7 @@ MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 
 class Template(BaseTimeStampField):
     title = models.CharField(max_length=75)
+    parser = models.ForeignKey('parsers.ParsingTask', on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -46,3 +47,28 @@ class Subject(BaseTimeStampField):
 
     def __str__(self):
         return self.title
+
+
+class ParsingTaskChoice:
+    STUBHUB_SUBJECT_PARSER = 'stubhub_subject_parser'
+
+    @classonlymethod
+    def get_choices(cls):
+        return (
+            (cls.STUBHUB_SUBJECT_PARSER, 'Stubhub cancel order'),
+        )
+
+
+class ParsingTask(BaseTimeStampField):
+    parser = models.CharField(max_length=75, choices=ParsingTaskChoice.get_choices())
+    desc = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.get_parser_display()
+
+    def get_parser_class(self):
+        if self.parser == ParsingTaskChoice.STUBHUB_SUBJECT_PARSER:
+            return
+        else:
+            return ''
+

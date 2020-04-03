@@ -1,0 +1,18 @@
+##uploaded files ##
+.DS_Store
+.coverage
+src/media/upload/*
+sqlite_database
+.env
+*.pyc
+static/*
+src/media/*
+!.gitkeep
+.sass-cache/
+tmp/
+settings_local.py
+build/
+backups/
+.vagrant/
+.idea/
+ubuntu-xenial-16.04-cloudimg-console.log

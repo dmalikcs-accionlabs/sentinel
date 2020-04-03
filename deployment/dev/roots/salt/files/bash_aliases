@@ -1,0 +1,2 @@
+alias cdproject='cd /vagrant/src/'
+alias cdtemplates='cd /vagrant/src/templates/'

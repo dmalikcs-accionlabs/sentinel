@@ -5,7 +5,7 @@ from django.utils.decorators import classonlymethod
 import os
 from django.utils.timezone import now
 from azure.servicebus import QueueClient, Message
-
+import uuid
 class EmailBodyTypeChoice:
     HTML= 'h'
     TEXT = 'T'
@@ -23,10 +23,11 @@ EMAIL_BODY_TYPE_LIST = EmailBodyTypeChoice.get_choices()
 class EmailCollection(BaseTimeStampField):
 
     def get_upload_location(instance, filename):
-        d = now().strftime("%Y%M%d")
-        return "emails/{}/".format(d, filename)
+        d = now().strftime("%Y%m%d")
+        return "emails/{}/{}/{}/".format(d, instance.pk, filename)
 
-    location = models.FileField(upload_to=get_upload_location, null=True, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    location = models.FileField(upload_to=get_upload_location, null=True)
     email_from = models.EmailField()
     subject = models.CharField(max_length=256, blank=True)
     body = models.TextField(blank=True)
@@ -55,6 +56,7 @@ class EmailCollection(BaseTimeStampField):
 
 
 class EmailAttachment(BaseTimeStampField):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.ForeignKey(EmailCollection, on_delete=models.CASCADE)
     location = models.FileField(upload_to='email/attachments/')
 

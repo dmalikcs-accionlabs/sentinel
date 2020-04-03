@@ -38,6 +38,7 @@ class Template(BaseTimeStampField):
     def __str__(self):
         return self.title
 
+
 class Subject(BaseTimeStampField):
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
     title = models.CharField(max_length=75)

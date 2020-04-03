@@ -2,6 +2,10 @@ from django.db import models
 from utils.models import BaseTimeStampField
 # Create your models here.
 from django.utils.decorators import classonlymethod
+import os
+
+from azure.servicebus import QueueClient, Message
+
 
 
 class EmailBodyTypeChoice:
@@ -25,15 +29,22 @@ class EmailCollection(BaseTimeStampField):
     body = models.TextField(blank=True)
     body_type = models.CharField(max_length=1, choices=EMAIL_BODY_TYPE_LIST,
                                  default=EmailBodyTypeChoice.TEXT)
+    is_published = models.BooleanField(default=True, editable=False)
 
     class Meta:
         ordering = ('-created_at', )
 
     def save(self, *args,  **kwargs):
-        created =  self._state.adding
+        created = self._state.adding
         if created:
-            pass
-            # create a parser mataching logic & save data into blob storage
+            try:
+                connection_str = os.environ['SB_CONN_STR']
+                TASK_QUEUE = "cancelledorders"
+                queue_client = QueueClient.from_connection_string(connection_str, TASK_QUEUE)
+                queue_client.send(self.email_subject)
+            except Exception as e:
+                print(e)
+                self.is_published = False
         super(EmailCollection, self).save(*args, **kwargs)
 
 

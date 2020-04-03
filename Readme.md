@@ -1,47 +1,36 @@
-#Django Theme templates
+## Project setup.
 
+1. Create a .env file under src folder with the following setting. 
 
-##Installation
+```shell script
+DJANGO_SETTINGS_MODULE="sentinel.settings_local"
+```
 
-*. If you are starting new theme development project. You could start with following command. 
- 
-django-admin.py startproject --template=https://bitbucket.org/madebygorilla/django-project-template/get/master.zip -name="Readme.md" project_name
+2. Create settings_local.py file under src/sentinel
 
+```python
+from  .settings_base import *
 
-##Importand Links
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'Database name',                      # Or path to database file if using sqlite3.
+        # The following settings are not used with sqlite3:
+        'USER': 'db_username',
+        'PASSWORD': 'db_password',
+        'HOST': 'db_host',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '5432',                      # Set to empty string for default.
+    }
+}
 
-Item           |   Urls 
--------------- |------------
-Demo url       |  [demo_url](https://bitbucket.org/tutorials/markdowndemo)
-Jenkins config |  [Configure](http://192.168.1.111:8080/)
-UAT url        |  [Simplepx](http://google.com)  
-UAT Tracker    |  [Spreadsheet](https://docs.google.com/spreadsheets/d/1kfZTvgFmShUv9vaWlhu7W_aPGsxJqG6GMyO24o4LW1M/edit?usp=drive_web)
-Checklist      |  [Checklist](https://docs.google.com/a/madebygorilla.com/spreadsheets/d/1DGoX_vhxzrqmACWIvtzs6CfqPMH8LhS4MalJ0KI_piI/edit?usp=sharing)
+DEBUG = True
+```
 
+3. Install packages 
 
-##Description of file structure
+```shell script
+#cd src
+#pip3 install -r requirements.txt 
+```
 
-
-* [Project Descrption](http://docs.krunksystems.com)
-
-* [UAT Tracker](http://docs.krunksystems.com)
-
-* [Feature Links](http://docs.krunksystems.com)
-
-* [Jenkins Configuration](http://docs.krunksystems.com) 
-
-* [Hooks update](http://docs..krunksystems.com)
-
-* [Status](http://docs.krunksystems.com) 
-
-
-
-
-Update pillar according to your settings_local.py file
-
-location deployment/dev/salt/roots/pillar
-
-Detail about port forwarding. 
-
-
-What Vagrant provision do here
+4. Migrate & runserver

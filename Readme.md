@@ -34,3 +34,9 @@ DEBUG = True
 ```
 
 4. Migrate & runserver
+
+```shell script
+#cd src
+#python3 manage.py migrate
+#python3 manage.py runserver 
+```

@@ -31,15 +31,17 @@ class MatchTypeChoice:
 MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 
 
-
-
-
 class Template(BaseTimeStampField):
     title = models.CharField(max_length=75)
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
 
+    def __str__(self):
+        return self.title
 
 class Subject(BaseTimeStampField):
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
     title = models.CharField(max_length=75)
     match_type = models.CharField(max_length=35, choices=MATCH_TYPE_LIST)
+
+    def __str__(self):
+        return self.title

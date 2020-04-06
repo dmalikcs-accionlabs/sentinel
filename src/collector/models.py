@@ -4,11 +4,10 @@ from utils.models import BaseTimeStampField
 from django.utils.decorators import classonlymethod
 import os
 from django.utils.timezone import now
-from azure.servicebus import QueueClient, Message
+from azure.servicebus import QueueClient, Message, ServiceBusClient
 import uuid
 from django.core.files.base import ContentFile
 import json
-
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -50,10 +49,19 @@ class EmailCollection(BaseTimeStampField):
         created = self._state.adding
         if created:
             try:
-                connection_str = os.environ['SB_CONN_STR']
-                TASK_QUEUE = "cancelledorders"
-                queue_client = QueueClient.from_connection_string(connection_str, TASK_QUEUE)
-                queue_client.send(self.email_subject)
+                connection_str = \
+                    'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
+                sb_client = ServiceBusClient.from_connection_string(connection_str)
+                queue_client = sb_client.get_queue("CancelledOrders")
+                queue_client.send(Message(json.dumps( {
+                    "CreationDate": "2020-04-03T13:12:32.6879998-03:00",
+                    "MessageType": 0,
+                    "Content": {
+                        "SenderAddress": self.email_from,
+                        "EmailDate": "2020-03-25T13:12:32.6887854-03:00",
+                        "OrderNumber": "20255033"
+                    }
+                })))
             except Exception as e:
                 print(e)
                 self.is_published = False
@@ -61,9 +69,13 @@ class EmailCollection(BaseTimeStampField):
         if created:
             self.location.save("{}.json".format(self.pk), ContentFile(json.dumps(
                 {
-                    'email_from': self.email_from,
-                    'boyd': self.body,
-                    'subject': self.subject,
+                    "CreationDate": "2020-04-03T13:12:32.6879998-03:00",
+                    "MessageType": 0,
+                    "Content": {
+                        "SenderAddress": "vpedrosa@dynastyse.com",
+                        "EmailDate": "2020-03-25T13:12:32.6887854-03:00",
+                        "OrderNumber": "20255033"
+                    }
                 }
             )))
 

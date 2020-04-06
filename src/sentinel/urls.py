@@ -18,7 +18,7 @@ urlpatterns = [
         template_name='robots.txt', content_type='text/plain'
     )),
     path('admin/', admin.site.urls),
-    path('collector/', include(('collector.urls', 'collector'), namespace='collector'),)
+    path('collect/', include(('collector.urls', 'collector'), namespace='collector'),)
 ]
 
 

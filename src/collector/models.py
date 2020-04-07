@@ -9,6 +9,7 @@ import uuid
 from django.core.files.base import ContentFile
 import json
 
+
 class EmailBodyTypeChoice:
     HTML = 'h'
     TEXT = 'T'
@@ -37,6 +38,10 @@ class EmailCollection(BaseTimeStampField):
     # body = models.TextField(blank=True)
     # body_type = models.CharField(max_length=1, choices=EMAIL_BODY_TYPE_LIST,
     #                              default=EmailBodyTypeChoice.TEXT)
+    template = models.ForeignKey('parsers.Template',
+                                 on_delete=models.SET_NULL, null=True, blank=True)
+    parser = models.ForeignKey('parsers.ParsingTask',
+                               on_delete=models.SET_NULL, null=True, blank=True)
     is_published = models.BooleanField(default=True, editable=False)
 
     def __str__(self):
@@ -44,6 +49,12 @@ class EmailCollection(BaseTimeStampField):
 
     class Meta:
         ordering = ('-created_at',)
+
+    ## post save signal
+    ## celery job e.==== template compare
+    ##  ## parse attached
+    ## parser run
+    ### push into service  bus
 
     # def save(self, *args, **kwargs):
     #     created = self._state.adding
@@ -80,6 +91,9 @@ class EmailCollection(BaseTimeStampField):
         #             }
         #         }
         #     )))
+        # @property
+        # def email_date(self):
+        #     return self.created_at
 
 
 class EmailAttachment(BaseTimeStampField):

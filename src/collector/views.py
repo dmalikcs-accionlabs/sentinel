@@ -75,9 +75,10 @@ class EmailSerializer:
 class ReadEmailView(APIView):
     def post(self,request,*args,**kwargs):
         emailmsg = dict(request.POST)
+        envelop_dict = dict(json.loads(emailmsg.get('envelope')[0]))
         required_data = {
-                "email_from": emailmsg.get('from')[0],
                 "subject": emailmsg.get('subject')[0],
+                "email_from": envelop_dict.get('from')[0],
             }
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk),ContentFile(json.dumps(request.POST)))
@@ -87,8 +88,6 @@ class ReadEmailView(APIView):
                 email_attachment.location.save(val.name,ContentFile(val.read()))
             print("Files saved successfully")
         return Response("Success")
-
-
 
 class TestReadEmail(APIView):
     def get(self,request,*args,**kwargs):

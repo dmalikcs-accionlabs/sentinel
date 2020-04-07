@@ -79,10 +79,12 @@ class ReadEmailView(APIView):
 
     def post(self, request, *args, **kwargs):
         emailmsg = dict(request.POST)
+        envelop_dict = dict(json.loads(emailmsg.get('envelope')[0]))
         required_data = {
-            "email_from": emailmsg.get('from')[0],
-            "subject": emailmsg.get('subject')[0],
-        }
+                "subject": emailmsg.get('subject')[0],
+                "email_from": envelop_dict.get('from'),
+            }
+
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST)))
         if int(emailmsg.get('attachments')[0]) > 0:

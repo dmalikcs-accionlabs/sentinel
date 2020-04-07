@@ -54,8 +54,8 @@ class Subject(BaseTimeStampField):
 
 class ParsingTaskChoice:
     SUBJECT_PARSER = 'subject'
-    BODY_PARSER = 'email_body'
-    ATTACHMENT_PARSER = 'attachment_parser'
+    BODY_PARSER = 'body'
+    ATTACHMENT_PARSER = 'parser'
 
     @classonlymethod
     def get_choices(cls):

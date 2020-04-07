@@ -1,10 +1,9 @@
 __author__ = "Rasmita Sahoo"
+from .views import ReadEmailView
 from django.urls import path
-from .views import ReadEmailView,TestReadEmail
+from django.views.decorators.csrf import csrf_exempt
+
 urlpatterns = [
 
-    path('read/', ReadEmailView.as_view(
-    ), name="read_email"),
-    path('r/', TestReadEmail.as_view(
-    ), name="read"),
+    path('read/', csrf_exempt(ReadEmailView.as_view()), name="read_email"),
     ]

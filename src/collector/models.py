@@ -9,6 +9,8 @@ import uuid
 from django.core.files.base import ContentFile
 import json
 from celery import chain
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -51,7 +53,8 @@ class EmailCollection(BaseTimeStampField):
         created = self._state.adding
         super(EmailCollection, self).save(*args, **kwargs)
         if created:
-            from .tasks import MatchTemplateTask, ExecuteParserTask, PublishToSBTask
+            from .tasks import MatchTemplateTask, \
+                ExecuteParserTask, PublishToSBTask
             match_template = MatchTemplateTask()
             execute_parser_task = ExecuteParserTask()
             publish_to_sb_task = PublishToSBTask()
@@ -60,15 +63,38 @@ class EmailCollection(BaseTimeStampField):
 
     @property
     def body(self):
+        #  todo: update form json
         return "return body from json file"
 
     @property
     def email_to(self):
+        # todo: update  from json
         return "dmalikcs@gmail.com"
 
     @property
     def attachments(self):
+        ## todo: update from JSON
         return "attachemnts"
+
+    @property
+    def email_date(self):
+        ## todo: update from JSON
+        return self.created_at
+
+    def publish_order(self, order_id):
+        connection_str = \
+            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
+        sb_client = ServiceBusClient.from_connection_string(connection_str)
+        queue_client = sb_client.get_queue("CancelledOrders")
+        queue_client.send(Message(json.dumps({
+            "CreationDate": self.created_at,
+            "MessageType": 0,
+            "Content": {
+                "SenderAddress": self.email_from,
+                "EmailDate": self.email_date,
+                "OrderNumber": order_id
+            }
+        }, cls=DjangoJSONEncoder), ))
 
 
 class EmailAttachment(BaseTimeStampField):

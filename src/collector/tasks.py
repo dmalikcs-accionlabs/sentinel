@@ -1,7 +1,9 @@
 from sentinel.celery import app
 from celery import Task
 from .models import EmailCollection
+from parsers.models import Template
 from django.core.exceptions import ObjectDoesNotExist
+
 
 class MatchTemplateTask(Task):
     """
@@ -19,7 +21,35 @@ class MatchTemplateTask(Task):
         try:
             email_id = args[0]
             e = EmailCollection.objects.get(id=email_id)
-            print(e)
+            kw = {}
+            fields = ['email_from', 'email_to']
+            for field in fields:
+                f = getattr(e, field)
+
+                kw.update({field: f})
+                q = Template.objects.filter(**kw)
+                print("Template require: ", q)
+                if q.count() == 1:
+                    e.template = q[0]
+                    e.save()
+                    break;
+                elif q.count() > 1:
+                    subjects = {}
+                    for s in q:
+                        print(s, s.subject, e.subject)
+                        try:
+                            match = s.subject.match(e.subject)
+                            if match:
+                                subjects.update({s: match})
+                        except Exception as e:
+                            print(e)
+                    if len(subjects) == 1:
+                        t = next(iter(subjects.keys()))
+                        e.template = t
+                        e.save()
+                        break
+                else:
+                    break
         except ObjectDoesNotExist:
             pass
         return email_id
@@ -48,10 +78,9 @@ class ExecuteParserTask(Task):
 
 
 class PublishToSBTask(Task):
-
     name = 'pusblish_to_sb'
 
-    def run(self,  *args, **kwargs):
+    def run(self, *args, **kwargs):
         #             connection_str = \
         #                 'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
         #             sb_client = ServiceBusClient.from_connection_string(connection_str)
@@ -80,4 +109,3 @@ class PublishToSBTask(Task):
 app.tasks.register(MatchTemplateTask())
 app.tasks.register(ExecuteParserTask())
 app.tasks.register(PublishToSBTask())
-

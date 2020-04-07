@@ -39,7 +39,7 @@ class EmailCollection(BaseTimeStampField):
                                  on_delete=models.SET_NULL, null=True, blank=True)
     parser = models.ForeignKey('parsers.ParsingTask',
                                on_delete=models.SET_NULL, null=True, blank=True)
-    is_published = models.BooleanField(default=True, editable=False)
+    is_published = models.BooleanField(default=False, editable=False)
 
     class Meta:
         ordering = ('-created_at',)
@@ -55,12 +55,20 @@ class EmailCollection(BaseTimeStampField):
             match_template = MatchTemplateTask()
             execute_parser_task = ExecuteParserTask()
             publish_to_sb_task = PublishToSBTask()
-            c = match_template.s() | execute_parser_task.s() |publish_to_sb_task.s()
+            c = match_template.s() | execute_parser_task.s() | publish_to_sb_task.s()
             c.delay(self.pk)
 
     @property
     def body(self):
         return "return body from json file"
+
+    @property
+    def email_to(self):
+        return "dmalikcs@gmail.com"
+
+    @property
+    def attachments(self):
+        return "attachemnts"
 
 
 class EmailAttachment(BaseTimeStampField):

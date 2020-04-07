@@ -35,20 +35,22 @@ class EmailCollection(BaseTimeStampField):
     location = models.FileField(upload_to=get_upload_location, null=True, blank=True)
     email_from = models.EmailField()
     subject = models.CharField(max_length=256, blank=True)
-    # body = models.TextField(blank=True)
-    # body_type = models.CharField(max_length=1, choices=EMAIL_BODY_TYPE_LIST,
-    #                              default=EmailBodyTypeChoice.TEXT)
     template = models.ForeignKey('parsers.Template',
                                  on_delete=models.SET_NULL, null=True, blank=True)
     parser = models.ForeignKey('parsers.ParsingTask',
                                on_delete=models.SET_NULL, null=True, blank=True)
     is_published = models.BooleanField(default=True, editable=False)
 
+    class Meta:
+        ordering = ('-created_at',)
+
     def __str__(self):
         return str(self.email_from)
 
-    class Meta:
-        ordering = ('-created_at',)
+    @property
+    def body(self):
+        return "return body from json file"
+
 
     ## post save signal
     ## celery job e.==== template compare

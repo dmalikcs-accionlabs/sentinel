@@ -51,11 +51,15 @@ class Subject(BaseTimeStampField):
 
 class ParsingTaskChoice:
     STUBHUB_SUBJECT_PARSER = 'stubhub_subject_parser'
+    TICKETMASTER_SUBJECT_PARSER = 'ticketmaster_subject_parser'
+    STUBHUB_BODY_PARSER = 'stubhub_body_parser'
 
     @classonlymethod
     def get_choices(cls):
         return (
             (cls.STUBHUB_SUBJECT_PARSER, 'Stubhub cancel order'),
+            (cls.TICKETMASTER_SUBJECT_PARSER,'Ticketmaster cancel order'),
+            (cls.STUBHUB_BODY_PARSER,'Stubhub cancel order')
         )
 
 

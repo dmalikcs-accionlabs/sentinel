@@ -4,7 +4,8 @@ import simplejson
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponse
 from rest_framework.response import Response
-
+from .serializers import EmailCollectSerializer
+from rest_framework import status
 import json
 
 
@@ -66,14 +67,30 @@ class EmailSerializer:
         print(errors)
 
 
+import email
+from django.core.files.base import ContentFile
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+from collector.models import EmailCollection,EmailAttachment
+from django.utils.timezone import now
 class ReadEmailView(APIView):
     def post(self,request,*args,**kwargs):
-        # print(json.dumps(request.POST))
-        print("****************")
-        # print(json.dumps(request.FILES))
-        EmailSerializer(request)
-        return Response("Post call")
-
+        emailmsg = dict(request.POST)
+        required_data = {
+                "email_from": emailmsg.get('from')[0],
+                "email_to": emailmsg.get('to')[0],
+                "subject": emailmsg.get('subject')[0],
+            }
+        received_email = EmailCollection.objects.create(**required_data)
+        received_email.location.save("{}.json".format(received_email.pk),ContentFile(json.dumps(request.POST)))
+        if(int(emailmsg.get('attachments')[0]) > 0):
+            for key,val in request.FILES.items():
+                email_attachment = EmailAttachment.objects.create(email=received_email)
+                email_attachment.location.save(val.name,ContentFile(val.read()))
+            print("Files saved successfully")
+        return Response("Success")
 
 class TestReadEmail(APIView):
     def get(self,request,*args,**kwargs):

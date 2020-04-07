@@ -32,7 +32,8 @@ class EmailCollection(BaseTimeStampField):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location = models.FileField(upload_to=get_upload_location, null=True, blank=True)
-    email_from = models.EmailField()
+    email_from = models.CharField(max_length=256,default="defaut_from@xyz.com") #models.EmailField()
+    email_to = models.CharField(max_length=256,default="defaut_to@xyz.com")
     subject = models.CharField(max_length=256, blank=True)
     body = models.TextField(blank=True)
     body_type = models.CharField(max_length=1, choices=EMAIL_BODY_TYPE_LIST,
@@ -48,6 +49,15 @@ class EmailCollection(BaseTimeStampField):
     def save(self, *args, **kwargs):
         created = self._state.adding
         if created:
+            formatted_message_for_queue = {
+                "CreationDate": self.created_at,
+                "MessageType": 0,
+                "Content": {
+                    "SenderAddress": self.email_from,
+                    "EmailDate": self.created_at,
+                    "OrderNumber": "20255033"
+                }
+            }
             try:
                 connection_str = \
                     'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='

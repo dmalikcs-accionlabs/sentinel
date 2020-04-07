@@ -33,6 +33,9 @@ MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 
 class Template(BaseTimeStampField):
     title = models.CharField(max_length=75)
+    domain = models.URLField(blank=True)
+    from_email = models.EmailField(blank=True)
+    to_email = models.EmailField(blank=True)
     parser = models.ForeignKey('parsers.ParsingTask', on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
 
@@ -41,7 +44,7 @@ class Template(BaseTimeStampField):
 
 
 class Subject(BaseTimeStampField):
-    template = models.ForeignKey(Template, on_delete=models.CASCADE)
+    template = models.ForeignKey(Template, on_delete=models.CASCADE, related_name='subjects')
     title = models.CharField(max_length=75)
     # match_type = models.CharField(max_length=35, choices=MATCH_TYPE_LIST)
 

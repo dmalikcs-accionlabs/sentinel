@@ -43,7 +43,8 @@ class Template(BaseTimeStampField):
 class Subject(BaseTimeStampField):
     template = models.ForeignKey(Template, on_delete=models.CASCADE)
     title = models.CharField(max_length=75)
-    match_type = models.CharField(max_length=35, choices=MATCH_TYPE_LIST)
+    # match_type = models.CharField(max_length=35, choices=MATCH_TYPE_LIST)
+
 
     def __str__(self):
         return self.title
@@ -68,7 +69,11 @@ class ParsingTask(BaseTimeStampField):
 
     def get_parser_class(self):
         if self.parser == ParsingTaskChoice.STUBHUB_SUBJECT_PARSER:
+            # import re
             return
         else:
             return ''
 
+
+
+# Email --> (Filter with Templates)

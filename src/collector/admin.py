@@ -27,8 +27,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         'location',
         'email_from',
         'subject',
-        'body',
-        'body_type',
         'is_published',
     )
     list_filter = ('created_at', 'updated', 'deleted', 'is_published')

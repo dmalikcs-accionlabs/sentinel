@@ -21,12 +21,10 @@ class EmailCollectionAdmin(admin.ModelAdmin):
     inlines = [EmailAttachmentInlineAdmin, ]
     list_display = (
         'id',
-        'created_at',
-        'updated',
-        'deleted',
-        'location',
         'email_from',
         'subject',
+        'template',
+        'parser',
         'is_published',
     )
     list_filter = ('created_at', 'updated', 'deleted', 'is_published')

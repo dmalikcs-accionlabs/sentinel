@@ -10,3 +10,5 @@ simplejson==3.17.0
 azure-servicebus==0.50.2
 celery==4.3.0
 redis==3.3.8
+django-regex-field==1.0.0
+-e git+https://github.com/saxix/django-regex.git@a9b3c243e996139251957ea390ae7588aad033c6

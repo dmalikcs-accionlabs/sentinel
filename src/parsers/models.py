@@ -2,9 +2,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.decorators import classonlymethod
 from utils.models import BaseTimeStampField
-
+from django_regex.fields import RegexField
 User = get_user_model()
-
+import re
 
 class MatchTypeChoice:
     EXACT = 'exact'
@@ -34,8 +34,9 @@ MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 class Template(BaseTimeStampField):
     title = models.CharField(max_length=75)
     domain = models.URLField(blank=True)
-    from_email = models.EmailField(blank=True)
-    to_email = models.EmailField(blank=True)
+    email_from = models.EmailField(blank=True)
+    email_to = models.EmailField(blank=True)
+    subject = RegexField(max_length=128, null=True, flags=re.I, blank=True)
     parser = models.ForeignKey('parsers.ParsingTask', on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
 
@@ -46,37 +47,32 @@ class Template(BaseTimeStampField):
 class Subject(BaseTimeStampField):
     template = models.ForeignKey(Template, on_delete=models.CASCADE, related_name='subjects')
     title = models.CharField(max_length=75)
-    # match_type = models.CharField(max_length=35, choices=MATCH_TYPE_LIST)
-
 
     def __str__(self):
         return self.title
 
 
 class ParsingTaskChoice:
-    STUBHUB_SUBJECT_PARSER = 'stubhub_subject_parser'
+    SUBJECT_PARSER = 'subject'
+    BODY_PARSER = 'body'
+    ATTACHMENT_PARSER = 'parser'
 
     @classonlymethod
     def get_choices(cls):
         return (
-            (cls.STUBHUB_SUBJECT_PARSER, 'Stubhub cancel order'),
+            (cls.SUBJECT_PARSER, 'Subject Parser'),
+            (cls.BODY_PARSER, 'Email Body Parser'),
+            (cls.ATTACHMENT_PARSER, 'Attachment  Parser'),
         )
 
 
 class ParsingTask(BaseTimeStampField):
-    parser = models.CharField(max_length=75, choices=ParsingTaskChoice.get_choices())
+    title = models.CharField(max_length=35, null=True)
+    parser = models.CharField(verbose_name="Parser Type", max_length=75,
+                              choices=ParsingTaskChoice.get_choices())
+    regex = RegexField(max_length=128, null=True, flags=re.I)
     desc = models.TextField(blank=True)
 
     def __str__(self):
-        return self.get_parser_display()
+        return self.title or str(self.pk)
 
-    def get_parser_class(self):
-        if self.parser == ParsingTaskChoice.STUBHUB_SUBJECT_PARSER:
-            # import re
-            return
-        else:
-            return ''
-
-
-
-# Email --> (Filter with Templates)

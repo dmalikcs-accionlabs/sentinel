@@ -59,7 +59,7 @@ class EmailCollection(BaseTimeStampField):
             execute_parser_task = ExecuteParserTask()
             publish_to_sb_task = PublishToSBTask()
             c = chain(match_template.s(), execute_parser_task.s(), publish_to_sb_task.s())
-            c.apply_async(self.pk)
+            c.delay(self.pk)
 
     @property
     def body(self):

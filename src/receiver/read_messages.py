@@ -8,3 +8,4 @@ queue_client = sb_client.get_queue("CancelledOrders")
 with queue_client.get_receiver() as messages:
     for message in messages:
         print(message)
+        message.complete()

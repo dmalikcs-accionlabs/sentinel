@@ -84,7 +84,7 @@ class ReadEmailView(APIView):
                 "subject": emailmsg.get('subject')[0],
                 "email_from": envelop_dict.get('from'),
             }
-
+        print(required_data)
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST)))
         if int(emailmsg.get('attachments')[0]) > 0:

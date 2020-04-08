@@ -8,6 +8,9 @@ from azure.servicebus import QueueClient, Message, ServiceBusClient
 import uuid
 from django.core.files.base import ContentFile
 import json
+from celery import chain
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -32,62 +35,66 @@ class EmailCollection(BaseTimeStampField):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location = models.FileField(upload_to=get_upload_location, null=True, blank=True)
-    email_from = models.CharField(max_length=256,default="defaut_from@xyz.com") #models.EmailField()
-    email_to = models.CharField(max_length=256,default="defaut_to@xyz.com")
+    email_from = models.EmailField()
     subject = models.CharField(max_length=256, blank=True)
-    body = models.TextField(blank=True)
-    body_type = models.CharField(max_length=1, choices=EMAIL_BODY_TYPE_LIST,
-                                 default=EmailBodyTypeChoice.TEXT)
-    is_published = models.BooleanField(default=True, editable=False)
-
-    def __str__(self):
-        return str(self.email_from)
+    template = models.ForeignKey('parsers.Template',
+                                 on_delete=models.SET_NULL, null=True, blank=True)
+    parser = models.ForeignKey('parsers.ParsingTask',
+                               on_delete=models.SET_NULL, null=True, blank=True)
+    is_published = models.BooleanField(default=False, editable=False)
 
     class Meta:
         ordering = ('-created_at',)
 
-    def save(self, *args, **kwargs):
+    def __str__(self):
+        return str(self.email_from)
+
+    def save(self,  *args,  **kwargs):
         created = self._state.adding
-        if created:
-            formatted_message_for_queue = {
-                "CreationDate": self.created_at,
-                "MessageType": 0,
-                "Content": {
-                    "SenderAddress": self.email_from,
-                    "EmailDate": self.created_at,
-                    "OrderNumber": "20255033"
-                }
-            }
-            try:
-                connection_str = \
-                    'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
-                sb_client = ServiceBusClient.from_connection_string(connection_str)
-                queue_client = sb_client.get_queue("CancelledOrders")
-                queue_client.send(Message(json.dumps( {
-                    "CreationDate": "2020-04-03T13:12:32.6879998-03:00",
-                    "MessageType": 0,
-                    "Content": {
-                        "SenderAddress": self.email_from,
-                        "EmailDate": "2020-03-25T13:12:32.6887854-03:00",
-                        "OrderNumber": "20255033"
-                    }
-                })))
-            except Exception as e:
-                print(e)
-                self.is_published = False
         super(EmailCollection, self).save(*args, **kwargs)
         if created:
-            self.location.save("{}.json".format(self.pk), ContentFile(json.dumps(
-                {
-                    "CreationDate": "2020-04-03T13:12:32.6879998-03:00",
-                    "MessageType": 0,
-                    "Content": {
-                        "SenderAddress": "vpedrosa@dynastyse.com",
-                        "EmailDate": "2020-03-25T13:12:32.6887854-03:00",
-                        "OrderNumber": "20255033"
-                    }
-                }
-            )))
+            from .tasks import MatchTemplateTask, \
+                ExecuteParserTask, PublishToSBTask
+            match_template = MatchTemplateTask()
+            execute_parser_task = ExecuteParserTask()
+            publish_to_sb_task = PublishToSBTask()
+            c = match_template.s() | execute_parser_task.s() | publish_to_sb_task.s()
+            c.delay(self.pk)
+
+    @property
+    def body(self):
+        #  todo: update form json
+        return "return body from json file"
+
+    @property
+    def email_to(self):
+        # todo: update  from json
+        return "dmalikcs@gmail.com"
+
+    @property
+    def attachments(self):
+        ## todo: update from JSON
+        return "attachemnts"
+
+    @property
+    def email_date(self):
+        ## todo: update from JSON
+        return self.created_at
+
+    def publish_order(self, order_id):
+        connection_str = \
+            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
+        sb_client = ServiceBusClient.from_connection_string(connection_str)
+        queue_client = sb_client.get_queue("CancelledOrders")
+        queue_client.send(Message(json.dumps({
+            "CreationDate": self.created_at,
+            "MessageType": 0,
+            "Content": {
+                "SenderAddress": self.email_from,
+                "EmailDate": self.email_date,
+                "OrderNumber": order_id
+            }
+        }, cls=DjangoJSONEncoder), ))
 
 
 class EmailAttachment(BaseTimeStampField):

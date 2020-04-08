@@ -8,25 +8,22 @@ class SubjectInlineAdmin(admin.TabularInline):
     model = Subject
     list_display = (
         'id',
-        'created_at',
-        'updated',
-        'deleted',
         'template',
         'title',
-        'match_type',
+        # 'match_type',
+        'created_at',
     )
 
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    inlines = [SubjectInlineAdmin, ]
     list_display = (
         'id',
-        'created_at',
-        'updated',
-        'deleted',
         'title',
-        'user',
+        'email_from',
+        'email_to',
+        'subject',
+        'created_at',
     )
     list_filter = ('created_at', 'updated', 'deleted', 'user')
     date_hierarchy = 'created_at'
@@ -36,11 +33,11 @@ class TemplateAdmin(admin.ModelAdmin):
 class ParsingTaskAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        'created_at',
-        'updated',
-        'deleted',
+        'title',
         'parser',
+        'regex',
         'desc',
+        'created_at'
     )
     list_filter = ('created_at', 'updated', 'deleted')
     date_hierarchy = 'created_at'

@@ -232,3 +232,5 @@ INTERNAL_IPS = (
 )
 
 AUTH_USER_MODEL = 'users.User'
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')

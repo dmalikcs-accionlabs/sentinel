@@ -11,6 +11,7 @@ import json
 from celery import chain
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
+from django.utils.functional import cached_property
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -61,25 +62,80 @@ class EmailCollection(BaseTimeStampField):
             c = chain(match_template.s(), execute_parser_task.s(), publish_to_sb_task.s())
             c.delay(self.pk)
 
+    @cached_property
+    def read_email_from_file(self):
+        with open(self.location.path) as f:
+            f_con = json.load(f)
+        return f_con
+
     @property
     def body(self):
         #  todo: update form json
-        return "return body from json file"
+        return self.read_email_from_file.get("text")
+
+    @property
+    def body(self):
+        return self.read_email_from_file.get('text')
 
     @property
     def email_to(self):
-        # todo: update  from json
-        return "dmalikcs@gmail.com"
+        return self.read_email_from_file.get('to')
 
     @property
-    def attachments(self):
-        ## todo: update from JSON
-        return "attachemnts"
+    def attachment_info(self):
+        attachments = self.read_email_from_file.get('attachment-info')
+        return attachments
 
     @property
     def email_date(self):
-        ## todo: update from JSON
-        return self.created_at
+        headers = self.read_email_from_file.get('headers')
+        email_date = headers[int(headers.find("Date:")):int(headers.find("Message-ID"))].split("Date:")[-1].split("\n")[
+            0].lstrip()
+        return email_date
+
+    @property
+    def sender_ip(self):
+        return self.read_email_from_file.get('sender_ip')
+
+    @property
+    def subject(self):
+        return self.read_email_from_file.get('subject')
+
+    @property
+    def html(self):
+        return self.read_email_from_file.get('html')
+
+    @property
+    def headers(self):
+        return self.read_email_from_file.get('headers')
+
+    @property
+    def envelope(self):
+        return self.read_email_from_file.get('envelope')
+
+    @property
+    def dkim(self):
+        return self.read_email_from_file.get('dkim')
+
+    @property
+    def content_ids(self):
+        return self.read_email_from_file.get('content-ids')
+
+    @property
+    def charsets(self):
+        return self.read_email_from_file.get('charsets')
+
+    @property
+    def cc(self):
+        return self.read_email_from_file.get('cc')
+
+    @property
+    def attachments_count(self):
+        return self.read_email_from_file.get('attachments')
+
+    @property
+    def spf(self):
+        return self.read_email_from_file.get('SPF')
 
     def publish_order(self, order_id):
         if not (settings.AZURE_SB_CONN_STRING and settings.AZURE_SB_CANCEL_QUEUE):

@@ -152,7 +152,7 @@ INSTALLED_APPS = (
 
     #3rd part Application
     'django_extensions',
-
+    'rest_framework',
     'sentinel',
     'users',
     'collector',
@@ -247,13 +247,13 @@ if AZURE_STORAGE_ACCOUNT \
         and AZURE_ACCOUNT_KEY and AZURE_CUSTOM_DOMAIN:
 
     DEFAULT_FILE_STORAGE = 'sentinel.custom_azure.AzureMediaStorage'
-    STATICFILES_STORAGE = 'sentinel.custom_azure.AzureStaticStorage'
+    # STATICFILES_STORAGE = 'sentinel.custom_azure.AzureStaticStorage'
 
     MEDIA_LOCATION = "media"
-    STATIC_LOCATION = "static"
+    # STATIC_LOCATION = "static"
 
     MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
-    STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+    # STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
 
 
 

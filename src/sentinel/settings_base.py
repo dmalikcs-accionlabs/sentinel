@@ -176,6 +176,9 @@ LOGGING = {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
         },
+        "json": {
+            '()': 'json_log_formatter.JSONFormatter',
+        },
     },
     'handlers': {
         'console': {
@@ -187,7 +190,15 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'applogfile': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.environ.get('LOG_FILE_PATH', '/var/log/sentinel/app.log'),
+            'maxBytes': 1024*1024*15,  # 15MB
+            'backupCount': 10,
+            'formatter': 'json',
+        },
     },
     'loggers': {
         'django.request': {
@@ -200,6 +211,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'sentinel': {
+            'level': 'INFO',
+            'handlers': ['applogfile',],
+            'propagate': True,
+        }
 
     }
 }

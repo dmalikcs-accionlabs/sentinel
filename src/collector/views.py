@@ -14,6 +14,12 @@ from django.utils.timezone import now
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from custom_logging.custom_logging import get_email_log_variable
+from custom_logging.choices import EMAILLoggingChoiceField
+import logging
+
+logger = logging.getLogger('sentinel')
+
 #
 # class EmailSerializer:
 #     def __init__(self, req):
@@ -84,7 +90,6 @@ class ReadEmailView(APIView):
                 "subject": emailmsg.get('subject')[0],
                 "email_from": envelop_dict.get('from'),
             }
-        print(required_data)
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST)))
         if int(emailmsg.get('attachments')[0]) > 0:
@@ -92,6 +97,13 @@ class ReadEmailView(APIView):
                 email_attachment = EmailAttachment.objects.create(email=received_email)
                 email_attachment.location.save(val.name, ContentFile(val.read()))
             print("Files saved successfully")
+        log_fields = get_email_log_variable(received_email)
+        log_fields[EMAILLoggingChoiceField.EMAIL_TO] = envelop_dict.get('to')
+        if emailmsg.get('cc'):
+            log_fields[EMAILLoggingChoiceField.RECIPIENT_LIST] = envelop_dict.get('to') + emailmsg.get('cc')
+        logger.info(
+            msg="Recived Email from {}".format(required_data['email_from']),
+            extra=log_fields)
         return Response("Success")
 
 

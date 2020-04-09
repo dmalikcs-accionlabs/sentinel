@@ -4,6 +4,8 @@ import simplejson
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponse
 from rest_framework.response import Response
+from rest_framework import status
+
 from django.core.files.base import ContentFile
 import os
 from django.core.files.storage import default_storage
@@ -84,7 +86,6 @@ class ReadEmailView(APIView):
                 "subject": emailmsg.get('subject')[0],
                 "email_from": envelop_dict.get('from'),
             }
-        print(required_data)
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST)))
         if int(emailmsg.get('attachments')[0]) > 0:
@@ -92,6 +93,6 @@ class ReadEmailView(APIView):
                 email_attachment = EmailAttachment.objects.create(email=received_email)
                 email_attachment.location.save(val.name, ContentFile(val.read()))
             print("Files saved successfully")
-        return Response("Success")
+        return Response("Ok", status=status.HTTP_200_OK)
 
 

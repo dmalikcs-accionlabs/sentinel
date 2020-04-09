@@ -148,6 +148,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'storages',
 
     #3rd part Application
     'django_extensions',
@@ -234,3 +235,27 @@ INTERNAL_IPS = (
 AUTH_USER_MODEL = 'users.User'
 
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+
+AZURE_STORAGE_ACCOUNT = os.getenv('AZURE_STORAGE_ACCOUNT', None)
+AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY', None)
+AZURE_CUSTOM_DOMAIN = os.getenv('AZURE_CUSTOM_DOMAIN', None)
+
+AZURE_MEDIA_CONTAINER = os.getenv('AZURE_MEDIA_CONTAINER', 'media')
+AZURE_STATIC_CONTAINER = os.getenv('AZURE_STATIC_CONTAINER', 'static')
+
+if AZURE_STORAGE_ACCOUNT \
+        and AZURE_ACCOUNT_KEY and AZURE_CUSTOM_DOMAIN:
+
+    DEFAULT_FILE_STORAGE = 'sentinel.custom_azure.AzureMediaStorage'
+    STATICFILES_STORAGE = 'sentinel.custom_azure.AzureStaticStorage'
+
+    MEDIA_LOCATION = "media"
+    STATIC_LOCATION = "static"
+
+    MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/'
+    STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+
+
+
+AZURE_SB_CONN_STRING = os.getenv('AZURE_SB_CONN_STRING', None)
+AZURE_SB_CANCEL_QUEUE = os.getenv('AZURE_SB_CANCEL_QUEUE', None)

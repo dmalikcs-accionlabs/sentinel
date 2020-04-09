@@ -10,7 +10,7 @@ from django.core.files.base import ContentFile
 import json
 from celery import chain
 from django.core.serializers.json import DjangoJSONEncoder
-
+from django.conf import settings
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -82,10 +82,12 @@ class EmailCollection(BaseTimeStampField):
         return self.created_at
 
     def publish_order(self, order_id):
-        connection_str = \
-            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=CancelledOrders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
+        if not (settings.AZURE_SB_CONN_STRING and settings.AZURE_SB_CANCEL_QUEUE):
+            print("Azure service bus in not configured properly")
+            return
+        connection_str = settings.AZURE_SB_CONN_STRING
         sb_client = ServiceBusClient.from_connection_string(connection_str)
-        queue_client = sb_client.get_queue("CancelledOrders")
+        queue_client = sb_client.get_queue(settings.AZURE_SB_CANCEL_QUEUE)
         queue_client.send(Message(json.dumps({
             "CreationDate": self.created_at,
             "MessageType": 0,

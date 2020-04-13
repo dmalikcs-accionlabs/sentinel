@@ -36,7 +36,7 @@ class Template(BaseTimeStampField):
     domain = models.URLField(blank=True)
     email_from = models.EmailField(blank=True)
     email_to = models.EmailField(blank=True)
-    subject = RegexField(max_length=128, null=True, flags=re.I, blank=True)
+    subject = RegexField(max_length=128, null=True, flags=re.I, blank=True, help_text="regular expression field")
     parser = models.ForeignKey('parsers.ParsingTask', on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
 
@@ -70,8 +70,12 @@ class ParsingTask(BaseTimeStampField):
     title = models.CharField(max_length=35, null=True)
     parser = models.CharField(verbose_name="Parser Type", max_length=75,
                               choices=ParsingTaskChoice.get_choices())
-    regex = RegexField(max_length=128, null=True, flags=re.I)
+    regex = RegexField(max_length=128, null=True, flags=re.I, help_text="regular expression field")
     desc = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'parser'
+        verbose_name_plural = 'parsers'
 
     def __str__(self):
         return self.title or str(self.pk)

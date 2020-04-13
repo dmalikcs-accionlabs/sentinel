@@ -5,6 +5,8 @@ from django.urls import path, include, \
 from django.contrib import admin
 from django.conf import settings
 from .views import home
+from django.contrib.auth.models import Group
+from django.contrib.sites.models import Site
 
 admin.site.site_header = 'Sentinel: Email parser'
 
@@ -34,3 +36,6 @@ if settings.DEBUG:
         }),
         path('__debug__/', include(debug_toolbar.urls)),
     ]
+
+admin.site.unregister(Group)
+admin.site.unregister(Site)

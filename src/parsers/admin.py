@@ -17,6 +17,23 @@ class SubjectInlineAdmin(admin.TabularInline):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
+    search_fields = ['email_from', 'email_to', 'subject']
+    fieldsets = (
+        ('', {
+            'fields': (
+                'title',
+                ('email_from', 'email_to',),
+                'subject',
+            ),
+        }),
+        ('Parser Mapping', {
+            'fields': (
+                'parser',
+            ),
+        }),
+
+    )
+
     list_display = (
         'id',
         'title',
@@ -31,6 +48,16 @@ class TemplateAdmin(admin.ModelAdmin):
 
 @admin.register(ParsingTask)
 class ParsingTaskAdmin(admin.ModelAdmin):
+    search_fields = ['title', 'parser', 'regex']
+    fieldsets = (
+        ('', {
+            'fields': (
+                'title',
+                ('parser', 'regex',),
+                'desc',
+            ),
+        }),
+    )
     list_display = (
         'id',
         'title',

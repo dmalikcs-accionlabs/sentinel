@@ -46,6 +46,8 @@ class EmailCollection(BaseTimeStampField):
 
     class Meta:
         ordering = ('-created_at',)
+        verbose_name = 'email'
+        verbose_name_plural = 'emails'
 
     def __str__(self):
         return str(self.email_from)

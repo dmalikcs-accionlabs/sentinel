@@ -15,3 +15,4 @@ django-regex-field==1.0.0
 -e git+https://github.com/saxix/django-regex.git@a9b3c243e996139251957ea390ae7588aad033c6#egg=django-regex
 django-storages==1.9.1
 azure-storage-blob==2.1.0
+json_log_formatter==0.3.0

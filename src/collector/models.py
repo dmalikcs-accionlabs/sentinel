@@ -70,11 +70,6 @@ class EmailCollection(BaseTimeStampField):
 
     @property
     def body(self):
-        #  todo: update form json
-        return self.read_email_from_file.get("text")
-
-    @property
-    def body(self):
         return self.read_email_from_file.get('text')
 
     @property
@@ -97,9 +92,6 @@ class EmailCollection(BaseTimeStampField):
     def sender_ip(self):
         return self.read_email_from_file.get('sender_ip')
 
-    @property
-    def subject(self):
-        return self.read_email_from_file.get('subject')
 
     @property
     def html(self):

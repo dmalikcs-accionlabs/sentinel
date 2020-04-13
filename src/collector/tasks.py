@@ -101,7 +101,6 @@ class PublishToSBTask(Task):
         order_id = kw.get('order_id')
         e = EmailCollection.objects.get(id=email_id)
         e.publish_order(order_id)
-        
 
 
 app.tasks.register(MatchTemplateTask())

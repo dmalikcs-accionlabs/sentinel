@@ -8,3 +8,4 @@ class EMAILLoggingChoiceField:
     ATTACHMENT_COUNT = 'No of attachments'
     TASK = 'task'
     STATUS = 'status'
+    EMAIL_DATE = 'email_date'

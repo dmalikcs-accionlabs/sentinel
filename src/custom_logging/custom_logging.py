@@ -14,5 +14,6 @@ def get_email_log_variable(email_collection_obj):
             log_fields[EMAILLoggingChoiceField.LOCATION])
     attachments = EmailAttachment.objects.filter(email=email_collection_obj.pk)
     log_fields[EMAILLoggingChoiceField.ATTACHMENT_COUNT] = len(attachments)
+    # log_fields[EMAILLoggingChoiceField.EMAIL_DATE] = email_collection_obj.email_date
 
     return log_fields

@@ -4,9 +4,12 @@ from .models import EmailCollection
 from parsers.models import Template
 from django.core.exceptions import ObjectDoesNotExist
 from azure.servicebus import QueueClient, Message, ServiceBusClient
-
+from custom_logging.custom_logging import get_email_log_variable
+from custom_logging.choices import EMAILLoggingChoiceField
 import json
+import logging
 
+logger = logging.getLogger('sentinel')
 
 
 class MatchTemplateTask(Task):
@@ -59,11 +62,27 @@ class MatchTemplateTask(Task):
             pass
         return email_id
 
-    # def on_success(self, retval, task_id, args, kwargs):
-    #     print("Update the ELK loggin")
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     print("Update the error logs to ELK loggin")
+    def on_success(self, retval, task_id, args, kwargs):
+
+        log_fields = get_log_fields(args[0])
+        if log_fields['template'] is None:
+            msg = " template and Parser not mapped"
+        else:
+            msg = " mapped to template {}".format(log_fields['template'])
+            if log_fields['parser'] is None :
+                msg += " but not mapped to any parser"
+            else:
+                msg += " and parser {}".format(log_fields['parser'])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+        logger.info(msg=msg,extra=log_fields)
+
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        log_fields = get_log_fields(args[0])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+        logger.info(msg=einfo, extra=log_fields)
 
 
 class ExecuteParserTask(Task):
@@ -72,7 +91,6 @@ class ExecuteParserTask(Task):
     def run(self, *args, **kwargs):
         email_id = args[0]
         e = EmailCollection.objects.get(id=email_id)
-        print(e.parser)
         if e.parser:
             print("Calling Parser")
             parser = e.parser
@@ -81,12 +99,18 @@ class ExecuteParserTask(Task):
             d = parser.regex.findall(txt)
             if d:
                 return {'email_id': email_id, 'order_id': d[0]}
-    #
-    # def on_success(self, retval, task_id, args, kwargs):
-    #     print("Update  Execution parser")
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     print("Update failure logs to ELK")
+
+    def on_success(self, retval, task_id, args, kwargs):
+        log_fields = get_log_fields(args[0])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+        logger.info ("",extra=log_fields)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        log_fields = get_log_fields(args[0])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+        logger.info(einfo, extra=log_fields)
 
 
 class PublishToSBTask(Task):
@@ -101,6 +125,31 @@ class PublishToSBTask(Task):
         order_id = kw.get('order_id')
         e = EmailCollection.objects.get(id=email_id)
         e.publish_order(order_id)
+
+    def on_success(self, retval, task_id, args, kwargs):
+        kw = args[0]
+        log_fields = get_log_fields(kw.get('email_id'))
+        msg = "publieshed the order number {}".format(kw.get('order_id'))
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+        logger.info (msg,extra=log_fields)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        kw = args[0]
+        log_fields = dict()
+        if kw and kw.get('email_id'):
+            log_fields = get_log_fields(kw.get('email_id'))
+            msg = einfo
+        else:
+            msg =" EMAIl ID and Order id not passed as arguments "
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+        logger.info(msg, extra=log_fields)
+
+
+def get_log_fields(email_id):
+    e = EmailCollection.objects.get(id=email_id)
+    return get_email_log_variable(e)
 
 
 app.tasks.register(MatchTemplateTask())

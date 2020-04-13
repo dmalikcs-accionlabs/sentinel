@@ -97,13 +97,10 @@ class ReadEmailView(APIView):
                 email_attachment = EmailAttachment.objects.create(email=received_email)
                 email_attachment.location.save(val.name, ContentFile(val.read()))
             print("Files saved successfully")
-        # log_fields = get_email_log_variable(received_email)
-        # log_fields[EMAILLoggingChoiceField.EMAIL_TO] = envelop_dict.get('to')
-        # if emailmsg.get('cc'):
-        #     log_fields[EMAILLoggingChoiceField.RECIPIENT_LIST] = envelop_dict.get('to') + emailmsg.get('cc')
-        # logger.info(
-        #     msg="Recived Email from {}".format(required_data['email_from']),
-        #     extra=log_fields)
+        log_fields = get_email_log_variable(received_email)
+        logger.info(
+            msg="Recived Email from {}".format(required_data['email_from']),
+            extra=log_fields)
         return Response("Success")
 
 

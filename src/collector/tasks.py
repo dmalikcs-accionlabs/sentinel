@@ -72,7 +72,7 @@ class MatchTemplateTask(Task):
             if log_fields['parser'] is None :
                 msg += " but not mapped to any parser"
             else:
-                msg += "and parser {}".format(log_fields['parser'])
+                msg += " and parser {}".format(log_fields['parser'])
         log_fields[EMAILLoggingChoiceField.TASK] = self.name
         log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
         logger.info(msg=msg,extra=log_fields)

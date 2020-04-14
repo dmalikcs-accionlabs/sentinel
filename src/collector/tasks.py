@@ -32,6 +32,7 @@ class MatchTemplateTask(Task):
 
                 kw.update({field: f})
                 q = Template.objects.filter(**kw)
+                kw.clear()
                 if q.count() == 1:
                     e.template = q[0]
                     e.parser = q[0].parser
@@ -42,12 +43,13 @@ class MatchTemplateTask(Task):
                     for s in q:
                         print(s, s.subject, e.subject)
                         try:
-                            match = s.subject.match(e.subject)
+                            reobj = s.subject
+                            match = reobj.search(e.subject) #match(e.subject)
                             if match:
                                 subjects.update({s: match})
                         except Exception as e:
                             print(e)
-                    if len(subjects) == 1:
+                    if len(subjects) >= 1: #it always gets the matched ones, what if there's no matching of regex to subject part of email
                         t = next(iter(subjects.keys()))
                         e.template = t
                         e.parser = t.parser

@@ -13,14 +13,20 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+SENTINEL_DATABASE_NAME = os.getenv('SENTINEL_DATABASE_NAME')
+SENTINEL_DATABASE_USERNAME = os.getenv('SENTINEL_DATABASE_USERNAME')
+SENTINEL_DATABASE_PASSWORD = os.getenv('SENTINEL_DATABASE_PASSWORD')
+SENTINEL_DATABASE_HOST = os.getenv('SENTINEL_DATABASE_HOST')
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'db_sentinel',                      # Or path to database file if using sqlite3.
+        'NAME': SENTINEL_DATABASE_NAME,                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        'USER': 'u_sentinel',
-        'PASSWORD': 'unix123',
-        'HOST': '127.0.0.1',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'USER': SENTINEL_DATABASE_USERNAME,
+        'PASSWORD': SENTINEL_DATABASE_PASSWORD,
+        'HOST': SENTINEL_DATABASE_HOST,                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '5432',                      # Set to empty string for default.
     }
 }

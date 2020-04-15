@@ -3,7 +3,7 @@ from custom_logging.choices import EMAILLoggingChoiceField
 from collector.models import EmailAttachment
 import os
 
-index_name = os.environ.get('LOG_INDEX_NAME', 'Sentinel-Email-Parser')
+index_name = os.environ.get('LOG_INDEX_NAME', 'sentinel-email-parser')
 
 def get_email_log_variable(email_obj):
 

@@ -8,6 +8,7 @@ from custom_logging.custom_logging import get_email_log_variable
 from custom_logging.choices import EMAILLoggingChoiceField
 import json
 import logging
+import os
 
 logger = logging.getLogger('sentinel')
 
@@ -142,6 +143,8 @@ class PublishToSBTask(Task):
             msg = einfo
         else:
             msg =" EMAIl ID and Order id not passed as arguments "
+            log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
+                                                      'sentinel-email-parser')
         log_fields[EMAILLoggingChoiceField.TASK] = self.name
         log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
         logger.info(msg, extra=log_fields)

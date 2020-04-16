@@ -25,27 +25,31 @@ class EmailAttachmentInlineAdmin(admin.TabularInline):
 class EmailCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['body', 'email_date', 'cc',
                        'content_ids', 'charsets',
-                       'attachments_count', 'spf']
+                       'attachments_count', 'spf', 'meta', ]
     fieldsets = (
         (None, {
             'fields': (
+                'template_match_status',
+
                 ('email_from', 'subject'),
                 ('cc', 'email_date', ),
                 'body',
+                ('content_ids', 'charsets', 'attachments_count', 'spf',),
+                'meta'
             )
         }),
 
-        ('Advance content', {
-            'classes': ('collapse',),
-            'fields': (
-                ('content_ids', 'charsets', 'attachments_count', 'spf', ),
-            ),
-        }),
+        # ('Advance content', {
+        #     'classes': ('collapse',),
+        #     'fields': (
+        #         ('content_ids', 'charsets', 'attachments_count', 'spf', ),
+        #     ),
+        # }),
 
 
-        ('Template Matching & Parser Mapping', {
+        ('Template', {
             'classes': ('collapse',),
-            'fields': (('template', 'parser'), ),
+            'fields': (('template', ), ),
         }),
     )
     search_fields = ['email_from', 'subject', ]
@@ -55,7 +59,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         'email_from',
         'subject',
         'template',
-        'parser',
         'is_published',
     )
     list_filter = ('created_at', 'is_published')

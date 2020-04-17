@@ -132,6 +132,7 @@ class EmailCollection(BaseTimeStampField):
     @property
     def html(self):
         if self.read_email_from_file:
+            ### body should be in HTML
             return self.read_email_from_file.get('html')
 
     @property

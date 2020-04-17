@@ -111,14 +111,24 @@ class ExecuteParserTask(Task):
                 if parser.parser_type == ParsingTaskChoice.SUBJECT_PARSER:
                     matches = parser.regex.findall(e.subject)
                     print(matches)
-                elif parser.ParsingTaskChoice == ParsingTaskChoice.BODY_PARSER:
+                    if matches:
+                        extracted_fields.update({parser.var_name: matches[0]})
+                elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
+                        and e.body_type == 'html':
+                    matches = parser.regex.findall(e.html) ### BS4
+                    if matches:
+                        extracted_fields.update({parser.var_name: matches[0]})
+                elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
+                        and e.body_type == 'text':
                     matches = parser.regex.findall(e.body)
+                    if matches:
+                        extracted_fields.update({parser.var_name: matches[0]})
                 else:
                     pass
-                if matches:
-                    extracted_fields.update({parser.var_name: [match for match in matches]})
+
+        print(extracted_fields)
         if extracted_fields:
-            e.mata = extracted_fields
+            e.meta = extracted_fields
             e.save()
                 # txt = getattr(e, parser.parser)
             # parser = e.parser

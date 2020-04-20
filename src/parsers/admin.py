@@ -39,6 +39,7 @@ class TemplateAdmin(admin.ModelAdmin):
                 'title',
                 ('email_from', 'email_to',),
                 'subject',
+                'desination',
             ),
         }),
     )

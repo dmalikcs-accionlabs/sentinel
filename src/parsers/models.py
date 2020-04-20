@@ -38,6 +38,7 @@ class Template(BaseTimeStampField):
     email_to = models.EmailField(blank=True)
     subject = RegexField(max_length=128, null=True, flags=re.I, blank=True, help_text="regular expression field")
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
+    desination = models.ForeignKey('destination.DestinationQueue', on_delete=models.PROTECT, null=True)
 
     def __str__(self):
         return self.title

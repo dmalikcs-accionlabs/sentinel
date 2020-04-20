@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from azure.servicebus import QueueClient, Message, ServiceBusClient
 from custom_logging.custom_logging import get_email_log_variable
 from custom_logging.choices import EMAILLoggingChoiceField
+from bs4 import BeautifulSoup
 import json
 import logging
 import os
@@ -115,7 +116,9 @@ class ExecuteParserTask(Task):
                         extracted_fields.update({parser.var_name: matches[0]})
                 elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
                         and e.body_type == 'html':
-                    matches = parser.regex.findall(e.html) ### BS4
+                    soup = BeautifulSoup(e.html)
+                    clean_text = soup.get_text()
+                    matches = parser.regex.findall(clean_text)
                     if matches:
                         extracted_fields.update({parser.var_name: matches[0]})
                 elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \

@@ -129,65 +129,58 @@ class ExecuteParserTask(Task):
                 else:
                     pass
 
-        print(extracted_fields)
         if extracted_fields:
             e.meta = extracted_fields
             e.save()
-                # txt = getattr(e, parser.parser)
-            # parser = e.parser
+            # publish to serviceDB
+            publish = PublishToSBTask()
+            publish.delay(e.pk)
 
-            # print("{}:{}".format(parser.parser, txt))
-            # d = parser.regex.findall(txt)
-            # if d:
-            #     return {'email_id': email_id, 'order_id': d[0]}
+    def on_success(self, retval, task_id, args, kwargs):
+        log_fields = get_log_fields(args[0])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+        logger.info("",extra=log_fields)
 
-    # def on_success(self, retval, task_id, args, kwargs):
-    #     log_fields = get_log_fields(args[0])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-    #     logger.info ("",extra=log_fields)
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     log_fields = get_log_fields(args[0])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-    #     logger.info(einfo, extra=log_fields)
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        log_fields = get_log_fields(args[0])
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+        logger.info(einfo, extra=log_fields)
 
-#
-# class PublishToSBTask(Task):
-#     name = 'pusblish_to_sb'
-#
-#     def run(self, *args, **kwargs):
-#         if not args:
-#             return
-#
-#         kw = args[0]
-#         email_id = kw.get('email_id')
-#         order_id = kw.get('order_id')
-#         e = EmailCollection.objects.get(id=email_id)
-#         e.publish_order(order_id)
-#
-#     def on_success(self, retval, task_id, args, kwargs):
-#         kw = args[0]
-#         log_fields = get_log_fields(kw.get('email_id'))
-#         msg = "publieshed the order number {}".format(kw.get('order_id'))
-#         log_fields[EMAILLoggingChoiceField.TASK] = self.name
-#         log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-#         logger.info(msg, extra=log_fields)
-#
-#     def on_failure(self, exc, task_id, args, kwargs, einfo):
-#         kw = args[0]
-#         log_fields = dict()
-#         if kw and kw.get('email_id'):
-#             log_fields = get_log_fields(kw.get('email_id'))
-#             msg = einfo
-#         else:
-#             msg =" EMAIl ID and Order id not passed as arguments "
-#             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
-#                                                       'sentinel-email-parser')
-#         log_fields[EMAILLoggingChoiceField.TASK] = self.name
-#         log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-#         logger.info(msg, extra=log_fields)
+
+class PublishToSBTask(Task):
+    name = 'pusblish_to_sb'
+
+    def run(self, *args, **kwargs):
+        if not args:
+            return
+        kw = args[0]
+        email_id = kw.get('email_id')
+        e = EmailCollection.objects.get(id=email_id)
+        e.publish_order()
+
+    def on_success(self, retval, task_id, args, kwargs):
+        kw = args[0]
+        log_fields = get_log_fields(kw.get('email_id'))
+        msg = "publieshed the order number {}".format(kw.get('order_id'))
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+        logger.info(msg, extra=log_fields)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        kw = args[0]
+        log_fields = dict()
+        if kw and kw.get('email_id'):
+            log_fields = get_log_fields(kw.get('email_id'))
+            msg = einfo
+        else:
+            msg =" EMAIl ID and Order id not passed as arguments "
+            log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
+                                                      'sentinel-email-parser')
+        log_fields[EMAILLoggingChoiceField.TASK] = self.name
+        log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+        logger.info(msg, extra=log_fields)
 
 
 def get_log_fields(email_id):
@@ -197,4 +190,4 @@ def get_log_fields(email_id):
 
 app.tasks.register(MatchTemplateTask())
 app.tasks.register(ExecuteParserTask())
-# app.tasks.register(PublishToSBTask())
+app.tasks.register(PublishToSBTask())

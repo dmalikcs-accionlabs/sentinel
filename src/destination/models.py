@@ -1,0 +1,37 @@
+from django.db import models
+from utils.models import BaseTimeStampField
+from django.conf import settings
+from azure.servicebus import QueueClient, Message, ServiceBusClient
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
+
+class DestinationQueue(BaseTimeStampField):
+    queue = models.CharField(verbose_name="queue name", max_length=75)
+    desc = models.TextField(editable=False, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('queue', 'is_active',)
+        verbose_name = 'queue'
+        verbose_name_plural = 'queues'
+
+    def __str__(self):
+        return self.queue
+
+    def publish(self, email, kwargs=None):
+        if not (settings.AZURE_SB_CONN_STRING and settings.AZURE_SB_CANCEL_QUEUE):
+            print("Azure service bus in not configured properly")
+            return
+        connection_str = settings.AZURE_SB_CONN_STRING
+        sb_client = ServiceBusClient.from_connection_string(connection_str)
+        queue_client = sb_client.get_queue(settings.AZURE_SB_CANCEL_QUEUE)
+        queue_client.send(Message(json.dumps({
+            "CreationDate": email.created_at,
+            "MessageType": 0,
+            "Content": {
+                "SenderAddress": self.email_from,
+                "EmailDate": self.email_date,
+                "OrderNumber": email['order_id']
+            }
+        }, cls=DjangoJSONEncoder), ))

@@ -9,6 +9,8 @@ class DestinationQueue(BaseTimeStampField):
 
     class Meta:
         unique_together = ('queue', 'is_active',)
+        verbose_name = 'queue'
+        verbose_name_plural = 'queues'
 
     def __str__(self):
         return self.queue

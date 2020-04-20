@@ -4,12 +4,10 @@ from utils.models import BaseTimeStampField
 from django.utils.decorators import classonlymethod
 import os
 from django.utils.timezone import now
-from azure.servicebus import QueueClient, Message, ServiceBusClient
 import uuid
 from django.core.files.base import ContentFile
 import json
 from celery import chain
-from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
 from django.utils.functional import cached_property
 from django.contrib.postgres.fields import HStoreField
@@ -175,22 +173,16 @@ class EmailCollection(BaseTimeStampField):
         if self.read_email_from_file:
             return self.read_email_from_file.get('SPF')
 
-    def publish_order(self, order_id):
-        if not (settings.AZURE_SB_CONN_STRING and settings.AZURE_SB_CANCEL_QUEUE):
-            print("Azure service bus in not configured properly")
-            return
-        connection_str = settings.AZURE_SB_CONN_STRING
-        sb_client = ServiceBusClient.from_connection_string(connection_str)
-        queue_client = sb_client.get_queue(settings.AZURE_SB_CANCEL_QUEUE)
-        queue_client.send(Message(json.dumps({
-            "CreationDate": self.created_at,
-            "MessageType": 0,
-            "Content": {
-                "SenderAddress": self.email_from,
-                "EmailDate": self.email_date,
-                "OrderNumber": order_id
-            }
-        }, cls=DjangoJSONEncoder), ))
+    def publish_order(self):
+        try:
+            self.template.queue.publish(self)
+            self.is_published = True
+            self.save()
+        except Exception as e:
+            print("record to ELK")
+            print(e)
+            self.is_published = False
+            self.save()
 
 
 class EmailAttachment(BaseTimeStampField):

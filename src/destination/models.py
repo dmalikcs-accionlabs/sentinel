@@ -5,6 +5,7 @@ from azure.servicebus import QueueClient, Message, ServiceBusClient
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+
 class DestinationQueue(BaseTimeStampField):
     queue = models.CharField(verbose_name="queue name", max_length=75)
     desc = models.TextField(editable=False, null=True)

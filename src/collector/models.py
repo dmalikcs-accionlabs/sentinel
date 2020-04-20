@@ -181,18 +181,18 @@ class EmailCollection(BaseTimeStampField):
                 body_type = 'text'
             elif self.read_email_from_file.get('html'):
                 body_type = 'html'
-            return 'html'
+            return body_type
 
     def publish_order(self):
-        try:
-            self.template.queue.publish(self)
-            self.is_published = True
-            self.save()
-        except Exception as e:
-            print("record to ELK")
-            print(e)
-            self.is_published = False
-            self.save()
+        # try:
+        self.template.desination.publish(self)
+            # self.is_published = True
+            # self.save()
+        # except Exception as e:
+        #     print("record to ELK")
+        #     print(e)
+        #     self.is_published = False
+        #     self.save()
 
 
 class EmailAttachment(BaseTimeStampField):

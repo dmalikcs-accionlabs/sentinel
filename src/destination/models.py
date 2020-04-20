@@ -20,18 +20,19 @@ class DestinationQueue(BaseTimeStampField):
         return self.queue
 
     def publish(self, email, kwargs=None):
-        if not (settings.AZURE_SB_CONN_STRING and settings.AZURE_SB_CANCEL_QUEUE):
+        print(settings.AZURE_SB_CONN_STRING)
+        if not settings.AZURE_SB_CONN_STRING:
             print("Azure service bus in not configured properly")
             return
         connection_str = settings.AZURE_SB_CONN_STRING
         sb_client = ServiceBusClient.from_connection_string(connection_str)
-        queue_client = sb_client.get_queue(settings.AZURE_SB_CANCEL_QUEUE)
+        queue_client = sb_client.get_queue(self.queue)
         queue_client.send(Message(json.dumps({
             "CreationDate": email.created_at,
             "MessageType": 0,
             "Content": {
-                "SenderAddress": self.email_from,
-                "EmailDate": self.email_date,
-                "OrderNumber": email['order_id']
+                "SenderAddress": email.email_from,
+                "EmailDate": email.email_date,
+                "OrderNumber": email.meta['OrderID']
             }
         }, cls=DjangoJSONEncoder), ))

@@ -173,6 +173,16 @@ class EmailCollection(BaseTimeStampField):
         if self.read_email_from_file:
             return self.read_email_from_file.get('SPF')
 
+    @property
+    def body_type(self):
+        if self.read_email_from_file:
+            body_type = None
+            if self.read_email_from_file.get('text'):
+                body_type = 'text'
+            elif self.read_email_from_file.get('html'):
+                body_type = 'html'
+            return 'html'
+
     def publish_order(self):
         try:
             self.template.queue.publish(self)

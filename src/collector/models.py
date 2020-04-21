@@ -192,7 +192,7 @@ class EmailCollection(BaseTimeStampField):
             print(e)
             self.is_published = False
             self.save()
-#
+
 
 class EmailAttachment(BaseTimeStampField):
     def get_upload_location(instance, filename):

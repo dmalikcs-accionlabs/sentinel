@@ -5,5 +5,5 @@ from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
 
-    path('read/', csrf_exempt(ReadEmailView.as_view()), name="read_email"),
+    path('read/<uuid:token>/', csrf_exempt(ReadEmailView.as_view()), name="read_email"),
     ]

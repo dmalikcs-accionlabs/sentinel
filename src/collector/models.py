@@ -184,15 +184,14 @@ class EmailCollection(BaseTimeStampField):
             return body_type
 
     def publish_order(self):
-        # try:
-        self.template.desination.publish(self)
-            # self.is_published = True
-            # self.save()
-        # except Exception as e:
-        #     print("record to ELK")
-        #     print(e)
-        #     self.is_published = False
-        #     self.save()
+        try:
+            self.template.desination.publish(self)
+            self.is_published = True
+            self.save()
+        except Exception as e:
+            print(e)
+            self.is_published = False
+            self.save()
 
 
 class EmailAttachment(BaseTimeStampField):

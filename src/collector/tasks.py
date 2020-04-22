@@ -77,7 +77,7 @@ class MatchTemplateTask(Task):
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info( e.get_template_match_status_display(),extra=log_fields)
+            logger.info( e.get_template_match_status_display(), log_fields)
             return email_id
         except ObjectDoesNotExist :
             log_fields = dict()
@@ -85,7 +85,7 @@ class MatchTemplateTask(Task):
                                                       'sentinel-email-parser')
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-            logger.error("No Email object found", extra=log_fields)
+            logger.error("No Email object found", log_fields)
         return email_id
 
 

@@ -77,7 +77,7 @@ class MatchTemplateTask(Task):
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info(msg= e.get_template_match_status_display(),extra=log_fields)
+            logger.info( e.get_template_match_status_display(),extra=log_fields)
             return email_id
         except ObjectDoesNotExist :
             log_fields = dict()
@@ -85,7 +85,7 @@ class MatchTemplateTask(Task):
                                                       'sentinel-email-parser')
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-            logger.error(msg="No Email object found", extra=log_fields)
+            logger.error("No Email object found", extra=log_fields)
         return email_id
 
 
@@ -133,16 +133,16 @@ class ExecuteParserTask(Task):
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info(msg= "Parsers Executed and extracted variables are "
+            logger.info( "Parsers Executed and extracted variables are "
                              "added to meta field of Email Object",
-                        extra=log_fields)
+                        log_fields)
         except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
                                                       'sentinel-email-parser')
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-            logger.error(msg="No Email object found", extra=log_fields)
+            logger.error("No Email object found", log_fields)
 
 
 class PublishToSBTask(Task):
@@ -159,15 +159,15 @@ class PublishToSBTask(Task):
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info(msg="published to the {} queue".format(
-                e.template.desination), extra=log_fields)
+            logger.info("published to the {} queue".format(
+                e.template.desination), log_fields)
         except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
                                                       'sentinel-email-parser')
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-            logger.error(msg="Email Object ID Not Passed ", extra=log_fields)
+            logger.error("Email Object ID Not Passed ", log_fields)
 
 
 

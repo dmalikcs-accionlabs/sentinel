@@ -11,7 +11,7 @@ from celery import chain
 from django.conf import settings
 from django.utils.functional import cached_property
 from django.contrib.postgres.fields import HStoreField
-
+from django.db import transaction
 
 
 class EmailBodyTypeChoice:
@@ -81,12 +81,11 @@ class EmailCollection(BaseTimeStampField):
         if created:
             from .tasks import MatchTemplateTask, \
                 ExecuteParserTask
-                #, PublishToSBTask
             match_template = MatchTemplateTask()
             execute_parser_task = ExecuteParserTask()
-            # publish_to_sb_task = PublishToSBTask()
             c = chain(match_template.s(), execute_parser_task.s())
-            c.delay(self.pk)
+
+            transaction.on_commit(lambda: c.delay(self.pk))
 
     @cached_property
     def read_email_from_file(self):

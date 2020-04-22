@@ -75,17 +75,18 @@ class EmailCollection(BaseTimeStampField):
     def __str__(self):
         return str(self.email_from)
 
-    def save(self,  *args,  **kwargs):
-        created = self._state.adding
-        super(EmailCollection, self).save(*args, **kwargs)
-        if created:
-            from .tasks import MatchTemplateTask, \
-                ExecuteParserTask
-            match_template = MatchTemplateTask()
-            execute_parser_task = ExecuteParserTask()
-            c = chain(match_template.s(), execute_parser_task.s())
+    # def save(self,  *args,  **kwargs):
+    #     created = self._state.adding
+    #     super(EmailCollection, self).save(*args, **kwargs)
+        # if created:
 
-            transaction.on_commit(lambda: c.delay(self.pk))
+    def initiate_async_parser(self):
+        from .tasks import MatchTemplateTask, \
+                ExecuteParserTask
+        match_template = MatchTemplateTask()
+        execute_parser_task = ExecuteParserTask()
+        c = chain(match_template.s(), execute_parser_task.s())
+        c.delay(self.pk)
 
     @cached_property
     def read_email_from_file(self):

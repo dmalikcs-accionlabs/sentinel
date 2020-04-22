@@ -42,7 +42,7 @@ class ReadEmailView(APIView):
             }
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST)))
-        received_email.save()
+        received_email.initiate_async_parser()
         if int(emailmsg.get('attachments')[0]) > 0:
             for key, val in request.FILES.items():
                 email_attachment = EmailAttachment.objects.create(email=received_email)

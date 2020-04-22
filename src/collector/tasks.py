@@ -86,29 +86,9 @@ class MatchTemplateTask(Task):
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
             logger.error(msg="No Email object found", extra=log_fields)
+        return email_id
 
 
-
-    # def on_success(self, retval, task_id, args, kwargs):
-    #
-        # log_fields = get_log_fields(args[0])
-    #     if log_fields['template'] is None:
-    #         msg = " template and Parser not mapped"
-    #     else:
-    #         msg = " mapped to template {}".format(log_fields['template'])
-    #         if log_fields['parser'] is None :
-    #             msg += " but not mapped to any parser"
-    #         else:
-    #             msg += " and parser {}".format(log_fields['parser'])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-    #     logger.info(msg=msg,extra=log_fields)
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     log_fields = get_log_fields(args[0])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-    #     logger.info(msg=einfo, extra=log_fields)
 
 
 class ExecuteParserTask(Task):
@@ -165,19 +145,6 @@ class ExecuteParserTask(Task):
             logger.error(msg="No Email object found", extra=log_fields)
 
 
-    # def on_success(self, retval, task_id, args, kwargs):
-    #     log_fields = get_log_fields(args[0])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-    #     logger.info("Successfully extracted", extra=log_fields)
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     log_fields = get_log_fields(args[0])
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-    #     logger.info(einfo, extra=log_fields)
-
-
 class PublishToSBTask(Task):
     name = 'pusblish_to_sb'
 
@@ -202,27 +169,7 @@ class PublishToSBTask(Task):
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
             logger.error(msg="Email Object ID Not Passed ", extra=log_fields)
 
-    # def on_success(self, retval, task_id, args, kwargs):
-    #     kw = args[0]
-    #     log_fields = get_log_fields(kw.get('email_id'))
-    #     msg = "Publish the order number for {}".format(kw.get('email_id'))
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-    #     logger.info(msg, extra=log_fields)
-    #
-    # def on_failure(self, exc, task_id, args, kwargs, einfo):
-    #     kw = args[0]
-    #     log_fields = dict()
-    #     if kw and kw.get('email_id'):
-    #         log_fields = get_log_fields(kw.get('email_id'))
-    #         msg = einfo
-    #     else:
-    #         msg =" EMAIl ID and Order id not passed as arguments "
-    #         log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
-    #                                                   'sentinel-email-parser')
-    #     log_fields[EMAILLoggingChoiceField.TASK] = self.name
-    #     log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
-    #     logger.info(msg, extra=log_fields)
+
 
 
 

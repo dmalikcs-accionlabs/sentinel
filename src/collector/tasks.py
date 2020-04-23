@@ -109,15 +109,15 @@ class ExecuteParserTask(Task):
                         if matches:
                             extracted_fields.update({parser.var_name: matches[0]})
                     elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
+                            and e.body_type == 'text':
+                        matches = parser.regex.findall(e.body)
+                        if matches:
+                            extracted_fields.update({parser.var_name: matches[0]})
+                    elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
                             and e.body_type == 'html':
                         soup = BeautifulSoup(e.html)
                         clean_text = soup.get_text()
                         matches = parser.regex.findall(clean_text)
-                        if matches:
-                            extracted_fields.update({parser.var_name: matches[0]})
-                    elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
-                            and e.body_type == 'text':
-                        matches = parser.regex.findall(e.body)
                         if matches:
                             extracted_fields.update({parser.var_name: matches[0]})
                     else:

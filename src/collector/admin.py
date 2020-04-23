@@ -32,6 +32,7 @@ class EmailCollectionAdmin(admin.ModelAdmin):
                 'template_match_status',
 
                 ('email_from', 'subject'),
+                'location',
                 ('cc', 'email_date', ),
                 'body',
                 ('content_ids', 'charsets', 'attachments_count', 'spf',),

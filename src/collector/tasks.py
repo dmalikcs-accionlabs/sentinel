@@ -51,7 +51,6 @@ class MatchTemplateTask(Task):
                 elif q.count() > 1:
                     subjects = {}
                     for s in q:
-                        print(s, s.subject, e.subject)
                         try:
                             match = s.subject.match(e.subject)
                             if match:
@@ -77,7 +76,7 @@ class MatchTemplateTask(Task):
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info( e.get_template_match_status_display(), log_fields)
+            logger.info(e.get_template_match_status_display(), log_fields)
             return email_id
         except ObjectDoesNotExist :
             log_fields = dict()
@@ -127,7 +126,7 @@ class ExecuteParserTask(Task):
             if extracted_fields:
                 e.meta = extracted_fields
                 e.save()
-                # publish to serviceDB
+
                 publish = PublishToSBTask()
                 publish.delay({'email_id': e.pk})
             log_fields = get_email_log_variable(e)

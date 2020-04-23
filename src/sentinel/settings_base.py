@@ -330,8 +330,10 @@ AUTH_ADFS = {
                       "email": "username"},
     "USERNAME_CLAIM": "upn",
     "CREATE_NEW_USERS": True,
-    "BOOLEAN_CLAIM_MAPPING": {"is_staff": "is_staff",
-                              "is_superuser":  "is_superuser"},
+    "GROUP_TO_FLAG_MAPPING": {"is_staff": "OPS Automation - Users",
+                              "is_superuser": "OPS Automation - Admin"},
+    # "BOOLEAN_CLAIM_MAPPING": {"is_staff": "is_staff",
+    #                           "is_superuser":  "is_superuser"},
 
 }
 

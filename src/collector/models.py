@@ -152,7 +152,7 @@ class EmailCollection(BaseTimeStampField):
     def content_ids(self):
         if self.read_email_from_file:
             return self.read_email_from_file.get('content-ids')
-e
+
     @property
     def charsets(self):
         if self.read_email_from_file:

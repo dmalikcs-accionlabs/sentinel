@@ -20,7 +20,6 @@ class DestinationQueue(BaseTimeStampField):
         return self.queue
 
     def publish(self, email, kwargs=None):
-        print(settings.AZURE_SB_CONN_STRING)
         if not settings.AZURE_SB_CONN_STRING:
             print("Azure service bus in not configured properly")
             return

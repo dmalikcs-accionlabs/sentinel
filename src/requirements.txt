@@ -17,3 +17,4 @@ django-storages==1.9.1
 azure-storage-blob==2.1.0
 json_log_formatter==0.3.0
 beautifulsoup4==4.9.0
+-e git+https://github.com/jobec/django-auth-adfs.git@41fa2b8eca8f80be9db2026a6310673f9cbde1bb#egg=django-auth-adfs

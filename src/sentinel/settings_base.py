@@ -115,6 +115,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+
             ],
             'debug': DEBUG,
             'loaders': [
@@ -128,12 +129,19 @@ TEMPLATES = [
 
 
 MIDDLEWARE = (
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django_auth_adfs.middleware.LoginRequiredMiddleware',
+
+    # 'sentinel.authentication_middleware.AutomaticUserLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+
+
+
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Uncomment the following if using any of the SSL settings:
@@ -146,6 +154,7 @@ WSGI_APPLICATION = 'sentinel.wsgi.application'
 
 
 INSTALLED_APPS = (
+    'django_auth_adfs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -158,6 +167,7 @@ INSTALLED_APPS = (
     'storages',
 
     #3rd part Application
+
     'django_extensions',
     'rest_framework',
     'sentinel',
@@ -223,7 +233,11 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['applogfile',],
             'propagate': True,
-        }
+        },
+        'django_auth_adfs': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
 
     }
 }
@@ -283,3 +297,44 @@ if AZURE_STORAGE_ACCOUNT \
 
 AZURE_SB_CONN_STRING = os.getenv('AZURE_SB_CONN_STRING', None)
 AZURE_SB_CANCEL_QUEUE = os.getenv('AZURE_SB_CANCEL_QUEUE', None)
+
+"""
+Azure AD settings
+"""
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+AUTHENTICATION_BACKENDS = [
+      'django_auth_adfs.backend.AdfsAuthCodeBackend',
+]
+
+AUTH_ADFS = {
+    "TENANT_ID": "40e0e3b4-5a9b-412a-ab52-66900570d663",
+    "CLIENT_ID": "4bd5496c-8151-4ee1-86fe-e86e1439ff80",
+ #   "LOGIN_EXEMPT_URLS": [""],
+    "RELYING_PARTY_ID": "https://parse-black-emerald.autoprocessor.com",
+    "AUDIENCE": "https://parse-black-emerald.autoprocessor.com",
+    "CLAIM_MAPPING": {"first_name": "given_name",
+                      "last_name": "family_name",
+                      "email": "username"},
+    "USERNAME_CLAIM": "upn",
+    "CREATE_NEW_USERS": True,
+    "BOOLEAN_CLAIM_MAPPING": {"is_staff": "OPS Automation - Users",
+                              "is_superuser": "OPS Automation - Admin"},
+
+}
+
+LOGIN_URL = "django_auth_adfs:login"
+LOGIN_REDIRECT_URL = "/"
+

@@ -24,7 +24,7 @@ urlpatterns = [
     )),
     path('', home, name="home"),
     path('admin/', admin.site.urls),
-    path('collector/', include(('collector.urls', 'collector'), namespace='collector'),)
+    path('collector/', include(('collector.urls', 'collector'), namespace='collector'),),
     path('oauth2/', include('django_auth_adfs.urls')),
 ]
 

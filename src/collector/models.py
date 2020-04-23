@@ -91,7 +91,7 @@ class EmailCollection(BaseTimeStampField):
     @cached_property
     def read_email_from_file(self):
         if self.location:
-            with open(self.location.path) as f:
+            with self.location.open() as f:
                 f_con = json.load(f)
             return f_con
 

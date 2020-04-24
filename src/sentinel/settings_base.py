@@ -153,8 +153,7 @@ ROOT_URLCONF = 'sentinel.urls'
 WSGI_APPLICATION = 'sentinel.wsgi.application'
 
 
-INSTALLED_APPS = (
-    'django_auth_adfs',
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -175,7 +174,7 @@ INSTALLED_APPS = (
     'collector',
     'parsers',
     'destination',
-)
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -301,30 +300,31 @@ AZURE_SB_CANCEL_QUEUE = os.getenv('AZURE_SB_CANCEL_QUEUE', None)
 """
 Azure AD settings
 """
-AUTHENTICATION_BACKENDS = [
-    # 'django.contrib.auth.backends.ModelBackend',
-    'django_auth_adfs.backend.AdfsAuthCodeBackend',
-]
+TENANT_ID = os.getenv('TENANT_ID', None)
+CLIENT_ID = os.getenv('CLIENT_ID', None)
+RELYING_PARTY_ID = os.getenv('RELYING_PARTY_ID', None)
+AUDIENCE = os.getenv('AUDIENCE', None)
 
-AUTH_ADFS = {
-    "TENANT_ID": os.getenv('TENANT_ID', None),
-    "CLIENT_ID": os.getenv('CLIENT_ID', None),
- #   "LOGIN_EXEMPT_URLS": [""],
-    "RELYING_PARTY_ID": "https://parse-black-emerald.autoprocessor.com",
-    "AUDIENCE": "https://parse-black-emerald.autoprocessor.com",
-    "CLAIM_MAPPING": {"first_name": "given_name",
-                      "last_name": "family_name",
-                      "email": "email"},
-    "USERNAME_CLAIM": "upn",
-    "CREATE_NEW_USERS": True,
-    "GROUP_TO_FLAG_MAPPING": {"is_staff": "OPS Automation - Users",
-                              "is_superuser": "OPS Automation - Admin"},
-    # "BOOLEAN_CLAIM_MAPPING": {"is_staff": "is_staff",
-    #                           "is_superuser":  "is_superuser"},
+if TENANT_ID and CLIENT_ID and RELYING_PARTY_ID and AUDIENCE:
+    INSTALLED_APPS = ["django_auth_adfs",] + INSTALLED_APPS
 
-}
+    AUTHENTICATION_BACKENDS = [
+        # 'django.contrib.auth.backends.ModelBackend',
+        'django_auth_adfs.backend.AdfsAuthCodeBackend',
+    ]
 
-LOGIN_URL = "django_auth_adfs:login"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = 'django_auth_adfs:logout'
+    AUTH_ADFS = {
+        "TENANT_ID": TENANT_ID,
+        "CLIENT_ID": CLIENT_ID,
+        "RELYING_PARTY_ID": RELYING_PARTY_ID,
+        "AUDIENCE": AUDIENCE,
+        "CLAIM_MAPPING": {"first_name": "given_name",
+                          "last_name": "family_name",
+                          "email": "email"},
+        "USERNAME_CLAIM": "upn",
+        "CREATE_NEW_USERS": True,
+        "GROUP_TO_FLAG_MAPPING": {"is_staff": "OPS Automation - Users",
+                                  "is_superuser": "OPS Automation - Admin"},
 
+    }
+    LOGIN_REDIRECT_URL = "/"

@@ -5,9 +5,10 @@ from django.urls import path, include, \
 from django.conf.urls import url
 from django.contrib import admin
 from django.conf import settings
-from .views import home,login_redirect,logout_redirect,DashboardLogin,DashboardLogout
+from .views import home
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
+from django.views.generic import RedirectView
 
 admin.site.site_header = 'Sentinel: Email parser'
 
@@ -17,8 +18,8 @@ class SettingsTemplateView(django.views.generic.TemplateView):
         context['settings'] = settings
         return context
 
-admin.site.login = DashboardLogin.as_view()
-admin.site.logout = DashboardLogout.as_view()
+admin.site.login = RedirectView.as_view(url="/oauth2/login")
+admin.site.logout = RedirectView.as_view(url="/oauth2/logout")
 urlpatterns = [
     path('robots.txt', SettingsTemplateView.as_view(
         template_name='robots.txt', content_type='text/plain'

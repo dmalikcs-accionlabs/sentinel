@@ -301,33 +301,20 @@ AZURE_SB_CANCEL_QUEUE = os.getenv('AZURE_SB_CANCEL_QUEUE', None)
 """
 Azure AD settings
 """
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 AUTHENTICATION_BACKENDS = [
-      'django_auth_adfs.backend.AdfsAuthCodeBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
+    'django_auth_adfs.backend.AdfsAuthCodeBackend',
 ]
 
 AUTH_ADFS = {
-    "TENANT_ID": "40e0e3b4-5a9b-412a-ab52-66900570d663",
-    "CLIENT_ID": "4bd5496c-8151-4ee1-86fe-e86e1439ff80",
+    "TENANT_ID": os.getenv('TENANT_ID', None),
+    "CLIENT_ID": os.getenv('CLIENT_ID', None),
  #   "LOGIN_EXEMPT_URLS": [""],
     "RELYING_PARTY_ID": "https://parse-black-emerald.autoprocessor.com",
     "AUDIENCE": "https://parse-black-emerald.autoprocessor.com",
     "CLAIM_MAPPING": {"first_name": "given_name",
                       "last_name": "family_name",
-                      "email": "username"},
+                      "email": "email"},
     "USERNAME_CLAIM": "upn",
     "CREATE_NEW_USERS": True,
     "GROUP_TO_FLAG_MAPPING": {"is_staff": "OPS Automation - Users",
@@ -339,4 +326,5 @@ AUTH_ADFS = {
 
 LOGIN_URL = "django_auth_adfs:login"
 LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = 'django_auth_adfs:logout'
 

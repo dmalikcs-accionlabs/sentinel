@@ -12,7 +12,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from django.contrib.postgres.fields import HStoreField
 from django.db import transaction
-
+import re
 
 class EmailBodyTypeChoice:
     HTML = 'h'
@@ -115,9 +115,9 @@ class EmailCollection(BaseTimeStampField):
     def email_date(self):
         if self.read_email_from_file:
             headers = self.read_email_from_file.get('headers')
-            email_date = headers[int(headers.find("Date:")):int(headers.find("Message-ID"))].split("Date:")[-1].split("\n")[
-                0].lstrip()
-            return email_date
+            email_date = re.findall('Date: (.*)\nMessage-ID',headers)
+            if email_date:
+                return email_date[0]
         else:
             return ''
 

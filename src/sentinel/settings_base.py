@@ -115,6 +115,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
+
             ],
             'debug': DEBUG,
             'loaders': [
@@ -128,12 +129,19 @@ TEMPLATES = [
 
 
 MIDDLEWARE = (
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django_auth_adfs.middleware.LoginRequiredMiddleware',
+
+    # 'sentinel.authentication_middleware.AutomaticUserLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+
+
+
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Uncomment the following if using any of the SSL settings:
@@ -145,7 +153,7 @@ ROOT_URLCONF = 'sentinel.urls'
 WSGI_APPLICATION = 'sentinel.wsgi.application'
 
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -158,6 +166,7 @@ INSTALLED_APPS = (
     'storages',
 
     #3rd part Application
+
     'django_extensions',
     'rest_framework',
     'sentinel',
@@ -165,7 +174,7 @@ INSTALLED_APPS = (
     'collector',
     'parsers',
     'destination',
-)
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -223,7 +232,11 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['applogfile',],
             'propagate': True,
-        }
+        },
+        'django_auth_adfs': {
+            'handlers': ['console','applogfile'],
+            'level': 'DEBUG',
+        },
 
     }
 }
@@ -283,3 +296,35 @@ if AZURE_STORAGE_ACCOUNT \
 
 AZURE_SB_CONN_STRING = os.getenv('AZURE_SB_CONN_STRING', None)
 AZURE_SB_CANCEL_QUEUE = os.getenv('AZURE_SB_CANCEL_QUEUE', None)
+
+"""
+Azure AD settings
+"""
+TENANT_ID = os.getenv('TENANT_ID', None)
+CLIENT_ID = os.getenv('CLIENT_ID', None)
+RELYING_PARTY_ID = os.getenv('RELYING_PARTY_ID', None)
+AUDIENCE = os.getenv('AUDIENCE', None)
+
+if TENANT_ID and CLIENT_ID and RELYING_PARTY_ID and AUDIENCE:
+    INSTALLED_APPS = ["django_auth_adfs",] + INSTALLED_APPS
+
+    AUTHENTICATION_BACKENDS = [
+        # 'django.contrib.auth.backends.ModelBackend',
+        'django_auth_adfs.backend.AdfsAuthCodeBackend',
+    ]
+
+    AUTH_ADFS = {
+        "TENANT_ID": TENANT_ID,
+        "CLIENT_ID": CLIENT_ID,
+        "RELYING_PARTY_ID": RELYING_PARTY_ID,
+        "AUDIENCE": AUDIENCE,
+        "CLAIM_MAPPING": {"first_name": "given_name",
+                          "last_name": "family_name",
+                          "email": "email"},
+        "USERNAME_CLAIM": "upn",
+        "CREATE_NEW_USERS": True,
+        "GROUP_TO_FLAG_MAPPING": {"is_staff": "OPS Automation - Users",
+                                  "is_superuser": "OPS Automation - Admin"},
+
+    }
+    LOGIN_REDIRECT_URL = "/"

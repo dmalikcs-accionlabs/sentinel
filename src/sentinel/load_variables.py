@@ -26,7 +26,7 @@ AZURE_MEDIA_CONTAINER = client.get_secret('SENTINEL-AZURE-MEDIA-CONTAINER').valu
 # AZURE_STATIC_CONTAINER = client.get_secret('SENTINEL-AZURE-STATIC-CONTAINER').value
 
 ### Azure service bus
-AZURE_SB_CONN_STRING = client.get_secret('SENTINEL-AZURE-SB_CONN-STRING').value
+AZURE_SB_CONN_STRING = client.get_secret('SENTINEL-AZURE-SB-CONN-STRING').value
 # AZURE_SB_CANCEL_QUEUE = client.get_secret('SENTINEL-AZURE-SB-CANCEL-QUEUE').value
 
 

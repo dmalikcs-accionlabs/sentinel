@@ -17,6 +17,7 @@ class SettingsTemplateView(django.views.generic.TemplateView):
         context = super(SettingsTemplateView, self).get_context_data(**kwargs)
         context['settings'] = settings
         return context
+
 if 'django_auth_adfs' in settings.INSTALLED_APPS:
     admin.site.login = RedirectView.as_view(url="/oauth2/login")
     admin.site.logout = RedirectView.as_view(url="/oauth2/logout")
@@ -30,6 +31,7 @@ urlpatterns = [
     path('collector/', include(('collector.urls', 'collector'), namespace='collector'), ),
 ]
 
+if 'django_auth_adfs' in settings.INSTALLED_APPS:
 
     urlpatterns += [path('oauth2/', include('django_auth_adfs.urls')),]
 

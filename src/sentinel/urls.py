@@ -27,8 +27,11 @@ urlpatterns = [
     path('', home, name="home"),
     path('admin/', admin.site.urls),
     path('collector/', include(('collector.urls', 'collector'), namespace='collector'), ),
-    path('oauth2/', include('django_auth_adfs.urls')),
 ]
+
+if 'django_auth_adfs' in settings.INSTALLED_APPS:
+    urlpatterns += [path('oauth2/', include('django_auth_adfs.urls')),]
+
 
 if settings.DEBUG:
     import debug_toolbar

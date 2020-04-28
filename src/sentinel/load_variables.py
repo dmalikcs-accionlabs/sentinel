@@ -1,4 +1,5 @@
 import os
+PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 
 AZURE_VAULT_URL = os.getenv('AZURE_VAULT_URL')
 
@@ -31,7 +32,9 @@ AZURE_SB_CONN_STRING = client.get_secret('SENTINEL-AZURE-SB-CONN-STRING').value
 
 
 ### Azure AD Services
-if False:
+IS_AD_AUTHENTICATION = \
+    os.path.exists(os.path.join(PROJECT_PATH, '../../deployment/prod/', 'auth_from_ad'))
+if IS_AD_AUTHENTICATION:
     TENANT_ID = client.get_secret('SENTINEL-AZURE-TENANT-ID').value
     CLIENT_ID = client.get_secret('SENTINEL-AZURE-CLIENT-ID').value
     RELYING_PARTY_ID = client.get_secret('SENTINEL-AZURE-RELYING-PARTY-ID').value

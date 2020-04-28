@@ -13,6 +13,10 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+IS_AD_AUTHENTICATION = \
+    os.path.exists(os.path.join(PROJECT_PATH, '../../deployment/prod/', 'auth_from_ad'))
+
+
 AZURE_VAULT_URL = os.getenv('AZURE_VAULT_URL')
 
 if AZURE_VAULT_URL:
@@ -310,7 +314,7 @@ if AZURE_STORAGE_ACCOUNT \
 Azure AD settings
 """
 
-if TENANT_ID and CLIENT_ID and RELYING_PARTY_ID and AUDIENCE:
+if IS_AD_AUTHENTICATION and TENANT_ID and CLIENT_ID and RELYING_PARTY_ID and AUDIENCE:
     INSTALLED_APPS = ["django_auth_adfs",] + INSTALLED_APPS
 
     AUTHENTICATION_BACKENDS = [

@@ -21,6 +21,9 @@ class EmailAttachmentInlineAdmin(admin.TabularInline):
         else:
             return False
 
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)
+
 @admin.register(EmailCollection)
 class EmailCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['body', 'email_date', 'cc',
@@ -70,4 +73,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         else:
             return False
 
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)
 

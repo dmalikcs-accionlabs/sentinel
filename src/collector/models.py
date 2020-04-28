@@ -102,7 +102,10 @@ class EmailCollection(BaseTimeStampField):
     @property
     def body(self):
         if self.read_email_from_file:
-            return self.read_email_from_file.get('text')
+            cleaner = re.compile('<.*?>')
+            clean_text = re.sub(cleaner, '', self.read_email_from_file.get(
+                'text'))
+            return clean_text
 
     @property
     def email_to(self):

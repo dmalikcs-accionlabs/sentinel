@@ -14,12 +14,14 @@ class EmailAttachmentInlineAdmin(admin.TabularInline):
         'email',
         'location',
     )
-
     def has_add_permission(self, request):
         if request.user and request.user.is_superuser:
             return True
         else:
             return False
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)
 
 @admin.register(EmailCollection)
 class EmailCollectionAdmin(admin.ModelAdmin):
@@ -61,7 +63,7 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         'template',
         'is_published',
     )
-    list_filter = ('created_at', 'is_published')
+    list_filter = ('created_at', 'is_published',)
     date_hierarchy = 'created_at'
 
     def has_add_permission(self, request):
@@ -70,4 +72,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         else:
             return False
 
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)
 

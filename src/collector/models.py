@@ -80,6 +80,10 @@ class EmailCollection(BaseTimeStampField):
     #     super(EmailCollection, self).save(*args, **kwargs)
         # if created:
 
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()
+
     def initiate_async_parser(self):
         from .tasks import MatchTemplateTask, \
                 ExecuteParserTask
@@ -205,3 +209,7 @@ class EmailAttachment(BaseTimeStampField):
 
     def __str__(self):
         return str(self.email.email_from)
+
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()

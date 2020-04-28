@@ -21,6 +21,7 @@ class EmailAttachmentInlineAdmin(admin.TabularInline):
         else:
             return False
 
+
 @admin.register(EmailCollection)
 class EmailCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['body', 'email_date', 'cc',
@@ -30,7 +31,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
         (None, {
             'fields': (
                 'template_match_status',
-
                 ('email_from', 'subject'),
                 'location',
                 ('cc', 'email_date', ),
@@ -39,15 +39,6 @@ class EmailCollectionAdmin(admin.ModelAdmin):
                 'meta'
             )
         }),
-
-        # ('Advance content', {
-        #     'classes': ('collapse',),
-        #     'fields': (
-        #         ('content_ids', 'charsets', 'attachments_count', 'spf', ),
-        #     ),
-        # }),
-
-
         ('Template', {
             'classes': ('collapse',),
             'fields': (('template', ), ),

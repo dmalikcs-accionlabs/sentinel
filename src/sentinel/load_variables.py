@@ -31,7 +31,8 @@ AZURE_SB_CONN_STRING = client.get_secret('SENTINEL-AZURE-SB-CONN-STRING').value
 
 
 ### Azure AD Services
-# TENANT_ID = client.get_secret('SENTINEL-AZURE-TENANT-ID').value
-# CLIENT_ID = client.get_secret('SENTINEL-AZURE-CLIENT-ID').value
-# RELYING_PARTY_ID = client.get_secret('SENTINEL-AZURE-RELYING-PARTY-ID').value
-# AUDIENCE = client.get_secret('SENTINEL-AZURE-AUDIENCE').value
+if False:
+    TENANT_ID = client.get_secret('SENTINEL-AZURE-TENANT-ID').value
+    CLIENT_ID = client.get_secret('SENTINEL-AZURE-CLIENT-ID').value
+    RELYING_PARTY_ID = client.get_secret('SENTINEL-AZURE-RELYING-PARTY-ID').value
+    AUDIENCE = client.get_secret('SENTINEL-AZURE-AUDIENCE').value

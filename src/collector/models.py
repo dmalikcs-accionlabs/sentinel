@@ -80,6 +80,10 @@ class EmailCollection(BaseTimeStampField):
     #     super(EmailCollection, self).save(*args, **kwargs)
         # if created:
 
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()
+
     def initiate_async_parser(self):
         from .tasks import MatchTemplateTask, \
                 ExecuteParserTask
@@ -98,7 +102,10 @@ class EmailCollection(BaseTimeStampField):
     @property
     def body(self):
         if self.read_email_from_file:
-            return self.read_email_from_file.get('text')
+            cleaner = re.compile('<.*?>')
+            clean_text = re.sub(cleaner, '', self.read_email_from_file.get(
+                'text'))
+            return clean_text
 
     @property
     def email_to(self):
@@ -204,3 +211,7 @@ class EmailAttachment(BaseTimeStampField):
 
     def __str__(self):
         return str(self.email.email_from)
+
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()

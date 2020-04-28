@@ -16,7 +16,7 @@ MANAGERS = ADMINS
 AZURE_VAULT_URL = os.getenv('AZURE_VAULT_URL')
 
 if AZURE_VAULT_URL:
-    import load_variable
+    from .load_variables import *
 else:
     SENTINEL_DATABASE_NAME = os.getenv('SENTINEL_DATABASE_NAME')
     SENTINEL_DATABASE_USERNAME = os.getenv('SENTINEL_DATABASE_USERNAME')

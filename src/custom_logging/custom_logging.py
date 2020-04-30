@@ -5,12 +5,12 @@ import os
 
 index_name = os.environ.get('LOG_INDEX_NAME', 'sentinel-email-parser')
 
-def get_email_log_variable(email_obj):
 
+def get_email_log_variable(email_obj):
     log_fields = model_to_dict(email_obj).copy()
     log_fields['index-name'] = index_name
     if log_fields.get(EMAILLoggingChoiceField.LOCATION):
-        log_fields[EMAILLoggingChoiceField.LOCATION]=str(
+        log_fields[EMAILLoggingChoiceField.LOCATION] = str(
             log_fields[EMAILLoggingChoiceField.LOCATION])
     if log_fields.get(EMAILLoggingChoiceField.TEMPLATE) is not None:
         log_fields[EMAILLoggingChoiceField.TEMPLATE] = str(email_obj.template.title)

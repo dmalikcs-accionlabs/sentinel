@@ -73,7 +73,7 @@ class MatchTemplateTask(Task):
             if IS_MULTIPLE_TEMPLATES:
                 e.template_match_status = TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH
                 e.save()
-            log_fields = get_email_log_variable(e)
+            log_fields = dict()
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
             logger.info(e.get_template_match_status_display(), log_fields)
@@ -127,12 +127,18 @@ class ExecuteParserTask(Task):
 
                 publish = PublishToSBTask()
                 publish.delay({'email_id': e.pk})
-            log_fields = get_email_log_variable(e)
+            # log_fields = get_email_log_variable(e)
+            # log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            # log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+            # logger.info("Parsers Executed and extracted variables are "
+            #                  "added to meta field of Email Object",
+            #              extra=log_fields)
+            log_fields = dict()
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info( "Parsers Executed and extracted variables are "
-                             "added to meta field of Email Object",
-                         extra=log_fields)
+            logger.info("Parsers Executed and extracted variables are "
+                         "added to meta field of Email Object",
+                     extra=log_fields)
         except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
@@ -155,11 +161,17 @@ class PublishToSBTask(Task):
             if e.publish_order():
                 e.is_published = True
                 e.save()
-            log_fields = get_email_log_variable(e)
+            log_fields = dict()
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
             logger.info("published to the {} queue".format(
                 e.template.desination), extra=log_fields)
+
+            # log_fields = get_email_log_variable(e)
+            # log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            # log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+            # logger.info("published to the {} queue".format(
+            #     e.template.desination), extra=log_fields)
         except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',

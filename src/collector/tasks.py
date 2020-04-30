@@ -170,6 +170,8 @@ class PublishToSBTask(Task):
             else:
                 log_fields[EMAILLoggingChoiceField.STATUS] = "fail"
                 log_fields['Error'] = error
+                logger.info("Failed to published on the {} queue".format(
+                    e.template.desination), extra=log_fields)
             # log_fields = get_email_log_variable(e)
             # log_fields[EMAILLoggingChoiceField.TASK] = self.name
             # log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"

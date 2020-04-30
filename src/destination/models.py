@@ -24,8 +24,8 @@ class DestinationQueue(BaseTimeStampField):
             print("Azure service bus in not configured properly")
             return
         connection_str = settings.AZURE_SB_CONN_STRING
-        sb_client = ServiceBusClient.from_connection_string(connection_str)
-        queue_client = sb_client.get_queue(self.queue)
+        sb_client = QueueClient.from_connection_string(connection_str, self.queue)
+        queue_client = sb_client
         content = {key: value for key, value in email.meta.items()} if email.meta else dict()
         content["SenderAddress"] = email.email_from
         content["EmailDate"] = email.email_date

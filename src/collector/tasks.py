@@ -158,15 +158,18 @@ class PublishToSBTask(Task):
             kw = args[0]
             email_id = kw.get('email_id')
             e = EmailCollection.objects.get(id=email_id)
-            if e.publish_order():
-                e.is_published = True
-                e.save()
             log_fields = dict()
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
-            log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
-            logger.info("published to the {} queue".format(
-                e.template.desination), extra=log_fields)
-
+            is_published, error = e.publish_order()
+            if is_published:
+                e.is_published = True
+                e.save()
+                log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+                logger.info("published to the {} queue".format(
+                    e.template.desination), extra=log_fields)
+            else:
+                log_fields[EMAILLoggingChoiceField.STATUS] = "fail"
+                log_fields['Error'] = error
             # log_fields = get_email_log_variable(e)
             # log_fields[EMAILLoggingChoiceField.TASK] = self.name
             # log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"

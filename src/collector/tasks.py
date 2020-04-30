@@ -152,7 +152,9 @@ class PublishToSBTask(Task):
             kw = args[0]
             email_id = kw.get('email_id')
             e = EmailCollection.objects.get(id=email_id)
-            e.publish_order()
+            if e.publish_order():
+                e.is_published = True
+                e.save()
             log_fields = get_email_log_variable(e)
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"

@@ -193,12 +193,9 @@ class EmailCollection(BaseTimeStampField):
     def publish_order(self):
         try:
             self.template.desination.publish(self)
-            self.is_published = True
-            self.save()
+            return True
         except Exception as e:
-            print(e)
-            self.is_published = False
-            self.save()
+            return False
 
 
 class EmailAttachment(BaseTimeStampField):

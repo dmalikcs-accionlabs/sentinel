@@ -26,7 +26,7 @@ class DestinationQueue(BaseTimeStampField):
         connection_str = settings.AZURE_SB_CONN_STRING
         sb_client = ServiceBusClient.from_connection_string(connection_str)
         queue_client = sb_client.get_queue(self.queue)
-        content = {key : value for key,value in email.items()} if email.meta else dict()
+        content = {key : value for key,value in email.meta.items()} if email.meta else dict()
         content["SenderAddress"] = email.email_from
         content["EmailDate"] = email.email_date
         queue_client.send(Message(json.dumps({

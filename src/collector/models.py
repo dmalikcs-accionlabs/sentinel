@@ -196,6 +196,7 @@ class EmailCollection(BaseTimeStampField):
             self.is_published = True
             self.save()
         except Exception as e:
+            print(e)
             self.is_published = False
             self.save()
 

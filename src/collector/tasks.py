@@ -88,8 +88,6 @@ class MatchTemplateTask(Task):
         return email_id
 
 
-
-
 class ExecuteParserTask(Task):
     name = 'execute_parser'
 

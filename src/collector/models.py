@@ -213,3 +213,23 @@ class EmailAttachment(BaseTimeStampField):
     def delete(self, using=None, keep_parents=False):
         self.deleted = now()
         self.save()
+
+
+class SBEmailParsing(BaseTimeStampField):
+    client_id = models.IntegerField("ClientId")
+    unique_identifier = models.CharField("UniqueIdentifier", max_length=128)
+    inbox_username = models.CharField("InboxUsername",  max_length=128)
+    subject = models.CharField("Subject",  max_length=128,  blank=True)
+    body_plaintext = models.TextField("BodyPlainText", blank=True)
+    body_html_content = models.TextField("BodyHtmlContent", blank=True)
+    from_address = models.EmailField("FromAddress")
+    to_addresses = models.EmailField("ToAddresses")
+
+    class Meta:
+        verbose_name = 'service bus email parsing'
+
+    def __str__(self):
+        return self.ClientId
+
+
+

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import EmailCollection, EmailAttachment
+from .models import EmailCollection,\
+    EmailAttachment, SBEmailParsing
 
 
 class EmailAttachmentInlineAdmin(admin.TabularInline):
@@ -66,4 +67,24 @@ class EmailCollectionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return self.model.objects.filter(deleted__isnull=True)
+
+
+@admin.register(SBEmailParsing)
+class SBEmailParsingAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'created_at',
+        'updated',
+        'deleted',
+        'client_id',
+        'unique_identifier',
+        'inbox_username',
+        'subject',
+        'body_plaintext',
+        'body_html_content',
+        'from_address',
+        'to_addresses',
+    )
+    list_filter = ('created_at', 'updated', 'deleted')
+    date_hierarchy = 'created_at'
 

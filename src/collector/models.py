@@ -12,6 +12,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from django.contrib.postgres.fields import HStoreField
 from django.db import transaction
+from PyPDF2 import PdfFileReader
 import re
 
 class EmailBodyTypeChoice:
@@ -233,3 +234,22 @@ class SBEmailParsing(BaseTimeStampField):
 
 
 
+class PDFCollection(BaseTimeStampField):
+    location = models.FileField(null=True, blank=True)
+    meta = HStoreField(verbose_name="Extracted data", null=True)
+    number_of_pages = models.PositiveIntegerField(null=True)
+    is_published = models.BooleanField(default=False, editable=False)
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'pdf'
+        verbose_name_plural = 'pdfs'
+
+
+class PDFData(BaseTimeStampField):
+    pdf = models.ForeignKey(PDFCollection, on_delete=models.CASCADE)
+    content = models.TextField(blank=True)
+    page_number = models.PositiveIntegerField(null=True)
+
+    class Meta:
+        verbose_name = 'pdf data'

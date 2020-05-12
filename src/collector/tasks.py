@@ -32,7 +32,9 @@ class MatchTemplateTask(Task):
             if not args:
                 raise ObjectDoesNotExist
             email_id = args[0]
+
             e = EmailCollection.objects.get(id=email_id)
+
             kw = {}
             fields = ['email_from', ]
             IS_MULTIPLE_TEMPLATES = None

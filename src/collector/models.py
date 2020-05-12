@@ -225,11 +225,31 @@ class SBEmailParsing(BaseTimeStampField):
     from_address = models.EmailField("FromAddress")
     to_addresses = models.EmailField("ToAddresses")
 
+    template_match_status = models.CharField(max_length=15,
+                                             default=TemplateMatchStatusChoice.NEW,
+                                             choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
+    template = models.ForeignKey('parsers.Template',
+                                 on_delete=models.SET_NULL, null=True, blank=True)
+    meta = HStoreField(verbose_name="Extracted data", null=True)
+    is_published = models.BooleanField(default=False, editable=False)
+
     class Meta:
         verbose_name = 'service bus email parsing'
 
     def __str__(self):
-        return self.ClientId
+        return str(self.client_id)
+
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()
+
+    def initiate_async_parser(self):
+        from .tasks import MatchTemplateTask, \
+                ExecuteParserTask
+        match_template = MatchTemplateTask()
+        execute_parser_task = ExecuteParserTask()
+        c = chain(match_template.s(), execute_parser_task.s())
+        c.delay(self.pk)
 
 
 

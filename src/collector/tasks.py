@@ -1,6 +1,7 @@
 from sentinel.celery import app
 from celery import Task
-from .models import EmailCollection, TemplateMatchStatusChoice
+from .models import EmailCollection, TemplateMatchStatusChoice, \
+    SBEmailParsing
 from parsers.models import Template, \
     ParsingTaskChoice
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +22,14 @@ class MatchTemplateTask(Task):
     """
     name = 'match_template'
 
+    def get_model(self, m):
+        if m == SBEmailParsing.__name__:
+            return SBEmailParsing
+        elif m == EmailCollection.__name__:
+            return EmailCollection
+        else:
+            return None
+
     def run(self, *args, **kwargs):
         """
         Executes process
@@ -31,19 +40,29 @@ class MatchTemplateTask(Task):
         try:
             if not args:
                 raise ObjectDoesNotExist
-            email_id = args[0]
+            id = args[0]
+            model = self.get_model(args[1])
 
-            e = EmailCollection.objects.get(id=email_id)
-
+            e = model.objects.get(id=id)
+            return_dict = {'id': id, 'model': args[1]}
+            if not e:
+                return return_dict
             kw = {}
-            fields = ['email_from', ]
+            fields = e.get_matching_fields()
             IS_MULTIPLE_TEMPLATES = None
-            for field in fields:
+            for field, map_field in fields.items():
                 IS_MULTIPLE_TEMPLATES = False
-                f = getattr(e, field)
+                f = getattr(e, map_field)
 
-                kw.update({field: f})
-                q = Template.objects.filter(**kw)
+                kw.update({
+                    field: f,
+                    'template_for': e.get_template_for()
+                })
+                q1 = Template.objects.filter(**kw)
+                both_qs = Template.objects.filter(template_for=Template.BOTH_EMAIL_AND_QUEUE_PARSING,
+                                                  deleted__isnull=True)
+                q = q1.union(both_qs,  all=False)
+                print(q)
                 if q.count() == 1:
                     e.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
                     e.template = q[0]
@@ -53,6 +72,8 @@ class MatchTemplateTask(Task):
                 elif q.count() > 1:
                     subjects = {}
                     for s in q:
+                        if not s.subject:
+                            continue
                         try:
                             match = s.subject.match(e.subject)
                             if match:
@@ -79,33 +100,43 @@ class MatchTemplateTask(Task):
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
             logger.info(e.get_template_match_status_display(), log_fields)
-            return email_id
-        except ObjectDoesNotExist :
+            return return_dict
+        except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
                                                       'sentinel-email-parser')
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
             logger.error("No Email object found", extra=log_fields)
-        return email_id
+        return return_dict
 
 
 class ExecuteParserTask(Task):
     name = 'execute_parser'
 
+    def get_model(self, m):
+        if m == SBEmailParsing.__name__:
+            return SBEmailParsing
+        elif m == EmailCollection.__name__:
+            return EmailCollection
+        else:
+            return None
+
     def run(self, *args, **kwargs):
-        try :
+        try:
             if not args:
                 raise ObjectDoesNotExist
-            email_id = args[0]
+            kw = args[0]
+            id = kw.get('id')
+            model = kw.get('model')
+            m = self.get_model(model)
             extracted_fields = {}
-            e = EmailCollection.objects.get(id=email_id)
+            e = m.objects.get(id=id)
             if e.template:
                 parsers = e.template.parsers.all()
                 for parser in parsers:
                     if parser.parser_type == ParsingTaskChoice.SUBJECT_PARSER:
                         matches = parser.regex.findall(e.subject)
-                        print(matches)
                         if matches:
                             extracted_fields.update({parser.var_name: matches[0]})
                     elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
@@ -128,7 +159,7 @@ class ExecuteParserTask(Task):
                 e.save()
 
                 publish = PublishToSBTask()
-                publish.delay({'email_id': e.pk})
+                publish.delay(id=id, model=model)
             # log_fields = get_email_log_variable(e)
             # log_fields[EMAILLoggingChoiceField.TASK] = self.name
             # log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
@@ -139,8 +170,8 @@ class ExecuteParserTask(Task):
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
             logger.info("Parsers Executed and extracted variables are "
-                         "added to meta field of Email Object",
-                     extra=log_fields)
+                        "added to meta field of Email Object",
+                        extra=log_fields)
         except ObjectDoesNotExist:
             log_fields = dict()
             log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
@@ -153,13 +184,23 @@ class ExecuteParserTask(Task):
 class PublishToSBTask(Task):
     name = 'pusblish_to_sb'
 
+    def get_model(self, m):
+        if m == SBEmailParsing.__name__:
+            return SBEmailParsing
+        elif m == EmailCollection.__name__:
+            return EmailCollection
+        else:
+            return None
+
     def run(self, *args, **kwargs):
+        print(kwargs)
         try:
-            if not args:
+            if not kwargs:
                 raise ObjectDoesNotExist
-            kw = args[0]
-            email_id = kw.get('email_id')
-            e = EmailCollection.objects.get(id=email_id)
+            id = kwargs.get('id')
+            model = kwargs.get('model')
+            m = self.get_model(model)
+            e = m.objects.get(id=id)
             log_fields = dict()
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             is_published, error = e.publish_order()
@@ -170,6 +211,7 @@ class PublishToSBTask(Task):
                 logger.info("published to the {} queue".format(
                     e.template.desination), extra=log_fields)
             else:
+                print(error)
                 log_fields[EMAILLoggingChoiceField.STATUS] = "fail"
                 log_fields['Error'] = error
                 logger.info("Failed to published on the {} queue".format(
@@ -186,9 +228,6 @@ class PublishToSBTask(Task):
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
             logger.error("Email Object ID Not Passed ", extra=log_fields)
-
-
-
 
 
 app.tasks.register(MatchTemplateTask())

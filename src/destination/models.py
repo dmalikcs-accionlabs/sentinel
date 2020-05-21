@@ -4,6 +4,7 @@ from django.conf import settings
 from azure.servicebus import QueueClient, Message, ServiceBusClient
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+from collector.models import SBEmailParsing, EmailCollection
 
 
 class DestinationQueue(BaseTimeStampField):
@@ -27,8 +28,13 @@ class DestinationQueue(BaseTimeStampField):
         sb_client = QueueClient.from_connection_string(connection_str, self.queue)
         queue_client = sb_client
         content = {key: value for key, value in email.meta.items()} if email.meta else dict()
-        content["SenderAddress"] = email.email_from
-        content["EmailDate"] = email.email_date
+        if isinstance(email, EmailCollection):
+            pass
+            content["SenderAddress"] = email.email_from
+            content["EmailDate"] = email.email_date
+        elif isinstance(email, SBEmailParsing):
+            content["SenderAddress"] = email.from_address
+            content["EmailDate"] = email.created_at
         queue_client.send(Message(json.dumps({
             "CreationDate": email.created_at,
             "MessageType": 0,

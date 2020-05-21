@@ -39,6 +39,7 @@ class ReadEmailView(APIView):
         required_data = {
                 "subject": emailmsg.get('subject')[0],
                 "email_from": envelop_dict.get('from'),
+                "email_to": envelop_dict.get('to'),
             }
         received_email = EmailCollection.objects.create(**required_data)
         received_email.location.save("{}.json".format(received_email.pk), ContentFile(json.dumps(request.POST).encode('utf-8')))

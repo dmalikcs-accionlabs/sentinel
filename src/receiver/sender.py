@@ -11,9 +11,9 @@ queue_client.send(Message(json.dumps({
     "MessageType": 0,
     "Content": {
         "ClientId": 2,
-        "UniqueIdentifier": "uid-2323",
+        "UniqueIdentifier": "uid-111",
         "InboxUsername": "dmalikcs",
-        "Subject": "This is subject",
+        "Subject": "Order #9898",
         "BodyPlainText": "Normal body",
         "BodyHtmlContent": "This is HTML body",
         "FromAddress": "dmalikcs@gmail.com",

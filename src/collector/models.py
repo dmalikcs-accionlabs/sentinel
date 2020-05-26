@@ -238,6 +238,11 @@ class PDFCollection(BaseTimeStampField):
     location = models.FileField(null=True, blank=True)
     meta = HStoreField(verbose_name="Extracted data", null=True)
     number_of_pages = models.PositiveIntegerField(null=True)
+    from_address = models.EmailField("FromAddress")
+    to_addresses = models.EmailField("ToAddresses")
+    client_id = models.IntegerField("ClientId")
+    type_id =  models.IntegerField("TypeId")
+
     is_published = models.BooleanField(default=False, editable=False)
 
     class Meta:

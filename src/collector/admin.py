@@ -112,11 +112,14 @@ class PDFDataInlineAdmin(admin.TabularInline):
 
 @admin.register(PDFCollection)
 class PDFCollectionAdmin(admin.ModelAdmin):
-    readonly_fields = ['id','location', 'number_of_pages','meta']
+    readonly_fields = ['id', 'location', 'number_of_pages', 'meta',
+                       'from_address', 'to_addresses', 'client_id', 'type_id']
 
     fieldsets = (
         (None, {
             'fields': (
+                ('from_address', 'to_addresses'),
+                ('client_id','type_id'),
                 ('location', 'number_of_pages'),
                 'meta'
             )

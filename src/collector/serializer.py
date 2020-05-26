@@ -1,0 +1,20 @@
+from rest_framework import serializers, fields
+
+from .models import SBEmailParsing
+
+
+class SBEmailParsingSerilizers(serializers.ModelSerializer):
+    ClientId = fields.CharField(source="client_id")
+    UniqueIdentifier = fields.CharField(source="unique_identifier")
+    Subject = fields.CharField(source="subject")
+    InboxUsername = fields.CharField(source='inbox_username', max_length=128)
+    BodyPlainText = fields.CharField(allow_blank=True, source='body_plaintext', required=False, style={'base_template': 'textarea.html'})
+    BodyHtmlContent = fields.CharField(allow_blank=True, source='body_html_content', required=False, style={'base_template': 'textarea.html'})
+    FromAddress = fields.EmailField(source='from_address', max_length=254)
+    ToAddresses = fields.EmailField(source='to_addresses', max_length=254)
+
+    class Meta:
+        model = SBEmailParsing
+        fields = ['ClientId', 'UniqueIdentifier', 'InboxUsername', 'Subject',
+                  'BodyPlainText', 'BodyHtmlContent', 'FromAddress',
+                  'ToAddresses']

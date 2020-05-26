@@ -3,35 +3,58 @@ from django.contrib.auth import get_user_model
 from django.utils.decorators import classonlymethod
 from utils.models import BaseTimeStampField
 from django_regex.fields import RegexField
+
 User = get_user_model()
 import re
 
-class MatchTypeChoice:
-    EXACT = 'exact'
-    IEXACT = 'iexact'
-    CONTAINS = 'contains'
-    ICONTAINS = 'icontains'
-    STARTSWITH = 'startswith'
-    ISTARTSWITH = 'istartswith'
-    ENDSWITH = 'endswith'
-    IENDSWITH = 'iendswith'
+
+# class MatchTypeChoice:
+#     EXACT = 'exact'
+#     IEXACT = 'iexact'
+#     CONTAINS = 'contains'
+#     ICONTAINS = 'icontains'
+#     STARTSWITH = 'startswith'
+#     ISTARTSWITH = 'istartswith'
+#     ENDSWITH = 'endswith'
+#     IENDSWITH = 'iendswith'
+#
+#     @classonlymethod
+#     def get_chocies(cls):
+#         return (
+#             (cls.EXACT, 'Exact Match'),
+#             (cls.IEXACT, 'iExact Match'),
+#             (cls.CONTAINS, 'Contains Match'),
+#             (cls.STARTSWITH, 'Startswith Match'),
+#             (cls.ISTARTSWITH, 'iStartswith Match'),
+#             (cls.ENDSWITH, 'endswith Match'),
+#             (cls.IENDSWITH, 'iendswith Match'),
+#         )
+#
+# MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
+
+class TemplateForChoice:
+    EMAIL_PARSING = 'E'
+    QUEUE_PARSING = 'Q'
+    BOTH_EMAIL_AND_QUEUE_PARSING = 'B'
 
     @classonlymethod
-    def get_chocies(cls):
+    def get_choices(cls):
         return (
-            (cls.EXACT, 'Exact Match'),
-            (cls.IEXACT, 'iExact Match'),
-            (cls.CONTAINS, 'Contains Match'),
-            (cls.STARTSWITH, 'Startswith Match'),
-            (cls.ISTARTSWITH, 'iStartswith Match'),
-            (cls.ENDSWITH, 'endswith Match'),
-            (cls.IENDSWITH, 'iendswith Match'),
+            (cls.EMAIL_PARSING, 'Email Parsing'),
+            (cls.QUEUE_PARSING, 'Queue Parsing'),
+            (cls.BOTH_EMAIL_AND_QUEUE_PARSING, 'Both Email and Queue Parsing')
         )
-
-MATCH_TYPE_LIST = MatchTypeChoice.get_chocies()
 
 
 class Template(BaseTimeStampField):
+
+    EMAIL_PARSING = TemplateForChoice.EMAIL_PARSING
+    QUEUE_PARSING = TemplateForChoice.QUEUE_PARSING
+    BOTH_EMAIL_AND_QUEUE_PARSING = TemplateForChoice.BOTH_EMAIL_AND_QUEUE_PARSING
+
+    template_for = models.CharField(max_length=10,
+                                    choices=TemplateForChoice.get_choices(),
+                                    default=TemplateForChoice.BOTH_EMAIL_AND_QUEUE_PARSING)
     title = models.CharField(max_length=75)
     domain = models.URLField(blank=True)
     email_from = models.EmailField(blank=True)
@@ -71,7 +94,7 @@ class ParsingTask(BaseTimeStampField):
     title = models.CharField(max_length=35, null=True)
     var_name = models.CharField(verbose_name="variable name", max_length=36, null=True)
     parser_type = models.CharField(verbose_name="Parser Type", max_length=75,
-                              choices=ParsingTaskChoice.get_choices())
+                                   choices=ParsingTaskChoice.get_choices())
     regex = RegexField(max_length=128, null=True, flags=re.I, help_text="regular expression field")
     desc = models.TextField(blank=True, editable=False)
 
@@ -81,4 +104,3 @@ class ParsingTask(BaseTimeStampField):
 
     def __str__(self):
         return self.title or str(self.pk)
-

@@ -36,6 +36,7 @@ class TemplateAdmin(admin.ModelAdmin):
     fieldsets = (
         ('', {
             'fields': (
+                'template_for',
                 'title',
                 ('email_from', 'email_to',),
                 'subject',

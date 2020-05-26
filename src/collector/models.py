@@ -59,6 +59,7 @@ class EmailCollection(BaseTimeStampField):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location = models.FileField(upload_to=get_upload_location, null=True, blank=True)
     email_from = models.EmailField()
+    email_to = models.EmailField(null=True)
     subject = models.CharField(max_length=256, blank=True)
     template_match_status = models.CharField(max_length=15,
                                              default=TemplateMatchStatusChoice.NEW,
@@ -79,19 +80,28 @@ class EmailCollection(BaseTimeStampField):
     # def save(self,  *args,  **kwargs):
     #     created = self._state.adding
     #     super(EmailCollection, self).save(*args, **kwargs)
-        # if created:
+    # if created:
 
     def delete(self, using=None, keep_parents=False):
         self.deleted = now()
         self.save()
 
+    def get_matching_fields(self):
+        return {
+            "email_from": "email_from",
+            "email_to": "email_to",
+        }
+
+    def get_template_for(self):
+        return 'Q'
+
     def initiate_async_parser(self):
         from .tasks import MatchTemplateTask, \
-                ExecuteParserTask
+            ExecuteParserTask
         match_template = MatchTemplateTask()
         execute_parser_task = ExecuteParserTask()
         c = chain(match_template.s(), execute_parser_task.s())
-        c.delay(self.pk)
+        c.delay(self.pk, "EmailCollection")
 
     @cached_property
     def read_email_from_file(self):
@@ -109,7 +119,7 @@ class EmailCollection(BaseTimeStampField):
             return clean_text
 
     @property
-    def email_to(self):
+    def to(self):
         if self.read_email_from_file:
             return self.read_email_from_file.get('to')
 
@@ -226,13 +236,68 @@ class SBEmailParsing(BaseTimeStampField):
     from_address = models.EmailField("FromAddress")
     to_addresses = models.EmailField("ToAddresses")
 
+    template_match_status = models.CharField(max_length=15,
+                                             default=TemplateMatchStatusChoice.NEW,
+                                             choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
+    template = models.ForeignKey('parsers.Template',
+                                 on_delete=models.SET_NULL, null=True, blank=True)
+    meta = HStoreField(verbose_name="Extracted data", null=True)
+    is_published = models.BooleanField(default=False, editable=False)
+
     class Meta:
         verbose_name = 'service bus email parsing'
 
     def __str__(self):
-        return self.ClientId
+        return str(self.client_id)
 
+    def save(self, *args, **kwargs):
+        created = self._state.adding
+        super(SBEmailParsing, self).save(*args, **kwargs)
+        if created:
+            self.initiate_async_parser()
 
+    def delete(self, using=None, keep_parents=False):
+        self.deleted = now()
+        self.save()
+
+    def get_matching_fields(self):
+        return {
+            "email_from": "from_address",
+            "email_to": "to_addresses",
+        }
+
+    def get_template_for(self):
+        return 'Q'
+
+    def initiate_async_parser(self):
+        from .tasks import MatchTemplateTask, \
+            ExecuteParserTask
+        match_template = MatchTemplateTask()
+        execute_parser_task = ExecuteParserTask()
+        c = chain(match_template.s(), execute_parser_task.s())
+        c.delay(self.pk, "SBEmailParsing")
+
+    @property
+    def body_type(self):
+        if self.body_html_content:
+            return 'html'
+        else:
+            return 'text'
+
+    @property
+    def body(self):
+        return self.body_plaintext
+
+    @property
+    def html(self):
+        return self.body_html_content
+
+    def publish_order(self):
+        try:
+            self.template.desination.publish(self)
+            return True, None
+        except Exception as e:
+            return False, e
 
 class PDFCollection(BaseTimeStampField):
     location = models.FileField(null=True, blank=True)

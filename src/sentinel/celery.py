@@ -19,6 +19,6 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 # app.conf.broker_url = os.getenv('BROKER_URL')
-app.conf.broker_use_ssl = {'ssl_cert_reqs': ssl.CERT_NONE}
+# app.conf.broker_use_ssl = {'ssl_cert_reqs': ssl.CERT_NONE}
 
 

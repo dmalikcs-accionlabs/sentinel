@@ -12,7 +12,6 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from django.contrib.postgres.fields import HStoreField
 from django.db import transaction
-from PyPDF2 import PdfFileReader
 import re
 
 class EmailBodyTypeChoice:
@@ -300,8 +299,7 @@ class SBEmailParsing(BaseTimeStampField):
             return False, e
 
 class PDFCollection(BaseTimeStampField):
-    location = models.FileField(null=True, blank=True)
-    meta = HStoreField(verbose_name="Extracted data", null=True)
+    location = models.TextField(null=True, blank=True)
     number_of_pages = models.PositiveIntegerField(null=True)
     from_address = models.EmailField("FromAddress")
     to_addresses = models.EmailField("ToAddresses")
@@ -309,17 +307,46 @@ class PDFCollection(BaseTimeStampField):
     type_id =  models.IntegerField("TypeId")
 
     is_published = models.BooleanField(default=False, editable=False)
+    template_match_status = models.CharField(max_length=15,
+                                             default=TemplateMatchStatusChoice.NEW,
+                                             choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
+    template = models.ForeignKey('parsers.PDFTemplate',
+                                 on_delete=models.SET_NULL, null=True,
+                                 blank=True)
 
     class Meta:
         ordering = ('-created_at',)
         verbose_name = 'pdf'
         verbose_name_plural = 'pdfs'
 
+    def get_matching_fields(self):
+        return {
+            "email_from": "from_address",
+            "email_to": "to_addresses",
+            "pdf_type" : "type_id"
+        }
+
+    def publish_order(self):
+        try:
+            self.template.desination.publish(self)
+            return True, None
+        except Exception as e:
+            return False, e
+
+    def initiate_async_parser(self):
+        from .tasks import PDFMatchTemplateTask, \
+            PDFExecuteParserTask
+        match_template = PDFMatchTemplateTask()
+        execute_parser_task = PDFExecuteParserTask()
+        c = chain(match_template.s(), execute_parser_task.s())
+        c.delay(self.pk)
+
 
 class PDFData(BaseTimeStampField):
     pdf = models.ForeignKey(PDFCollection, on_delete=models.CASCADE)
     content = models.TextField(blank=True)
     page_number = models.PositiveIntegerField(null=True)
+    meta = HStoreField(verbose_name="Extracted data", null=True)
 
     class Meta:
         verbose_name = 'pdf data'

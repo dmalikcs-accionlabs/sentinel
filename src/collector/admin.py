@@ -118,6 +118,7 @@ class PDFDataInlineAdmin(admin.TabularInline):
         'deleted',
         'content',
         'page_number',
+        'meta',
     )
 
     def has_add_permission(self, request):
@@ -132,17 +133,21 @@ class PDFDataInlineAdmin(admin.TabularInline):
 
 @admin.register(PDFCollection)
 class PDFCollectionAdmin(admin.ModelAdmin):
-    readonly_fields = ['id', 'location', 'number_of_pages', 'meta',
+    readonly_fields = ['id', 'location', 'number_of_pages',
                        'from_address', 'to_addresses', 'client_id', 'type_id']
 
     fieldsets = (
         (None, {
             'fields': (
+                'template_match_status',
                 ('from_address', 'to_addresses'),
                 ('client_id','type_id'),
                 ('location', 'number_of_pages'),
-                'meta'
             )
+        }),
+        ('Template', {
+            'classes': ('collapse',),
+            'fields': (('template',),),
         }),
     )
     list_display = (
@@ -150,6 +155,9 @@ class PDFCollectionAdmin(admin.ModelAdmin):
         'created_at',
         'updated',
         'deleted',
+        'template',
+        'is_published',
+        'created_at',
     )
 
     list_filter = ('created_at', 'updated', 'deleted')

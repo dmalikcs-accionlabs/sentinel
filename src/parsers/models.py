@@ -104,3 +104,30 @@ class ParsingTask(BaseTimeStampField):
 
     def __str__(self):
         return self.title or str(self.pk)
+
+
+class PDFTemplate(BaseTimeStampField):
+
+    title = models.CharField(max_length=75)
+    email_from = models.EmailField(blank=True)
+    email_to = models.EmailField(blank=True)
+    user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
+    pdf_type = models.IntegerField(null=True)
+    desination = models.ForeignKey('destination.DestinationQueue', on_delete=models.PROTECT, null=True)
+
+    def __str__(self):
+        return self.title
+
+class PDFParsingTask(BaseTimeStampField):
+    template = models.ForeignKey(PDFTemplate, null=True, on_delete=models.CASCADE, related_name='pdfparsers')
+    title = models.CharField(max_length=35, null=True)
+    var_name = models.CharField(verbose_name="variable name", max_length=36, null=True)
+    regex = RegexField(max_length=128, null=True, flags=re.I, help_text="regular expression field")
+    desc = models.TextField(blank=True, editable=False)
+
+    class Meta:
+        verbose_name = 'pdfparser'
+        verbose_name_plural = 'pdfparsers'
+
+    def __str__(self):
+        return self.title or str(self.pk)

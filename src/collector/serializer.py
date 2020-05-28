@@ -1,6 +1,6 @@
 from rest_framework import serializers, fields
 
-from .models import SBEmailParsing
+from .models import SBEmailParsing, PDFCollection
 
 
 class SBEmailParsingSerilizers(serializers.ModelSerializer):
@@ -18,3 +18,16 @@ class SBEmailParsingSerilizers(serializers.ModelSerializer):
         fields = ['ClientId', 'UniqueIdentifier', 'InboxUsername', 'Subject',
                   'BodyPlainText', 'BodyHtmlContent', 'FromAddress',
                   'ToAddresses']
+
+class PDFCollectionSerilizers(serializers.ModelSerializer):
+    clientId = fields.CharField(source="client_id")
+    fromEmail = fields.EmailField(source='from_address', max_length=254)
+    toEmail = fields.EmailField(source='to_addresses', max_length=254)
+    pdfLink = fields.CharField(source='location')
+    number_of_pages = fields.IntegerField()
+    typeId = fields.IntegerField(source='type_id')
+
+    class Meta:
+        model = PDFCollection
+        fields = ['clientId', 'fromEmail', 'toEmail', 'pdfLink',
+                  'number_of_pages', 'typeId']

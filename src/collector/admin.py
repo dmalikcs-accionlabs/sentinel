@@ -33,7 +33,7 @@ class EmailCollectionAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                ('template_match_status', 'match_templates',),
+                ('template_match_status', 'match_templates', 'template'),
                 ('email_from', 'subject', 'email_to'),
                 'location',
                 ('cc', 'email_date', ),
@@ -42,11 +42,11 @@ class EmailCollectionAdmin(admin.ModelAdmin):
                 'meta'
             )
         }),
-        ('Template', {
-            'classes': ('collapse',),
-            'fields': (('template', ),
-                       ),
-        }),
+        # ('Template', {
+        #     'classes': ('collapse',),
+        #     'fields': (('template', ),
+        #                ),
+        # }),
     )
     search_fields = ['email_from', 'subject', 'email_to']
     inlines = [EmailAttachmentInlineAdmin, ]

@@ -63,9 +63,9 @@ class EmailCollection(BaseTimeStampField):
     template_match_status = models.CharField(max_length=15,
                                              default=TemplateMatchStatusChoice.NEW,
                                              choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
-    match_templates = models.ManyToManyField('parsers.Template', related_name='match_templates', blank=True)
+    match_templates = models.ManyToManyField('parsers.Template', related_name='match_templates', blank=True, verbose_name="templates")
     template = models.ForeignKey('parsers.Template',
-                                 on_delete=models.SET_NULL, null=True, blank=True)
+                                 on_delete=models.SET_NULL, null=True, blank=True, verbose_name="parser executed")
     meta = HStoreField(verbose_name="Extracted data", null=True)
     is_published = models.BooleanField(default=False, editable=False)
 

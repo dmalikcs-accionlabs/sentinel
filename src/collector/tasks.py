@@ -40,6 +40,7 @@ class MatchTemplateTask(Task):
         try:
             if not args:
                 raise ObjectDoesNotExist
+            templates = []
             id = args[0]
             model = self.get_model(args[1])
 
@@ -49,54 +50,81 @@ class MatchTemplateTask(Task):
                 return return_dict
             kw = {}
             fields = e.get_matching_fields()
-            IS_MULTIPLE_TEMPLATES = None
-            for field, map_field in fields.items():
-                IS_MULTIPLE_TEMPLATES = False
-                f = getattr(e, map_field)
+            # IS_MULTIPLE_TEMPLATES = None
 
+
+            # kw_q = {field: getattr(e, map_field) for field, map_field in fields.items()}
+            # print(Template.objects.filter(**kw_q) | Template.objects.filter(**kw_q))
+
+            matched_templates = None
+
+            for field, map_field in fields.items():
+                f = getattr(e, map_field)
                 kw.update({
                     field: f,
-                    'template_for': e.get_template_for()
+                    'template_for__in': [e.get_template_for(),  Template.BOTH_EMAIL_AND_QUEUE_PARSING],
+                    'deleted__isnull': True
                 })
-                q1 = Template.objects.filter(**kw)
-                both_qs = Template.objects.filter(template_for=Template.BOTH_EMAIL_AND_QUEUE_PARSING,
-                                                  deleted__isnull=True)
-                q = q1.union(both_qs,  all=False)
-                print(q)
-                if q.count() == 1:
-                    e.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
-                    e.template = q[0]
-                    e.save()
-                    IS_MULTIPLE_TEMPLATES = False
-                    break;
-                elif q.count() > 1:
-                    subjects = {}
-                    for s in q:
-                        if not s.subject:
-                            continue
-                        try:
-                            match = s.subject.match(e.subject)
-                            if match:
-                                subjects.update({s: match})
-                        except Exception as e:
-                            print(e)
-                    if len(subjects) == 1:
-                        t = next(iter(subjects.keys()))
-                        e.template = t
-                        e.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
-                        e.save()
-                        IS_MULTIPLE_TEMPLATES = False
-                        break
-                    else:
-                        IS_MULTIPLE_TEMPLATES = True
-                else:
-                    e.template_match_status = TemplateMatchStatusChoice.NO_TEMPLATE_MATCH
-                    e.save()
-                    break
-            if IS_MULTIPLE_TEMPLATES:
-                e.template_match_status = TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH
+                template_query = Template.objects.filter(**kw)
+                print(kw)
+                print(template_query)
+                if template_query.exists():
+                    matched_templates = template_query
+
+                # IS_MULTIPLE_TEMPLATES = False
+
+
+                # q1 = Template.objects.filter(**kw)
+                # kw.update({
+                #     'template_for': Template.,
+                #
+                # })
+                # both_qs = Template.objects.filter(**kw)
+                # q = q1.union(both_qs,  all=False)
+            if matched_templates.count() == 1:
+                e.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
+                e.template = matched_templates[0]
                 e.save()
+                # IS_MULTIPLE_TEMPLATES = False
+                # break;
+            elif matched_templates.count() > 1:
+                subjects = []
+                for s in matched_templates:
+                    templates.append(s)
+                    if not s.subject:
+                        continue
+                    try:
+                        match = s.subject.match(e.subject)
+                        if match:
+                            subjects.append(s)
+                    except Exception as e:
+                        print(e)
+                if len(subjects) == 1:
+                    t = subjects[0]
+                    e.template = t
+                    e.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
+                    e.save()
+                    # IS_MULTIPLE_TEMPLATES = False
+                    # break
+                elif len(subjects) > 1:
+                    e.template_match_status = TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH
+                    e.save()
+                    e.match_templates.add(*subjects)
+                else:
+                    e.template_match_status = TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH
+                    e.save()
+                    e.match_templates.add(*templates)
+            else:
+                e.template_match_status = TemplateMatchStatusChoice.NO_TEMPLATE_MATCH
+                e.save()
+                # break
+
+            if e.template_match_status == TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH:
+                if e.match_templates.all().exists():
+                    e.template = e.match_templates.last()
+                    e.save()
             log_fields = dict()
+
             log_fields[EMAILLoggingChoiceField.TASK] = self.name
             log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
             logger.info(e.get_template_match_status_display(), log_fields)

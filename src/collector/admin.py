@@ -33,7 +33,7 @@ class EmailCollectionAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'template_match_status',
+                ('template_match_status', 'match_templates', 'template'),
                 ('email_from', 'subject', 'email_to'),
                 'location',
                 ('cc', 'email_date', ),
@@ -42,12 +42,13 @@ class EmailCollectionAdmin(admin.ModelAdmin):
                 'meta'
             )
         }),
-        ('Template', {
-            'classes': ('collapse',),
-            'fields': (('template', ), ),
-        }),
+        # ('Template', {
+        #     'classes': ('collapse',),
+        #     'fields': (('template', ),
+        #                ),
+        # }),
     )
-    search_fields = ['email_from', 'subject', ]
+    search_fields = ['email_from', 'subject', 'email_to']
     inlines = [EmailAttachmentInlineAdmin, ]
     list_display = (
         'id',
@@ -60,6 +61,7 @@ class EmailCollectionAdmin(admin.ModelAdmin):
     )
     list_filter = ('created_at', 'is_published')
     date_hierarchy = 'created_at'
+
 
     def has_add_permission(self, request):
         if request.user and request.user.is_superuser:

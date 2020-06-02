@@ -13,9 +13,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         is_verbose = options.get('verbose')
-        AP_EMAIL_PARSING_QUEUE = 'cancelledorders'
+        AP_EMAIL_PARSING_QUEUE = 'pdfparserequest'
         connection_str = \
-            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=cancelledorders;SharedAccessKey=QyZ7PCAb3ofM4UbQMux0LFy0otDh0PqqDy33DthoaLU='
+            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=read-write;SharedAccessKey=Aj40PBRbF2YtMuyyMAFoU4NhpPfSY3B+4zx187DR6VM='
 
         sb_client = QueueClient.from_connection_string(connection_str, AP_EMAIL_PARSING_QUEUE)
         if is_verbose: print("Starting service bus listening services on queue {}".format(AP_EMAIL_PARSING_QUEUE))
@@ -29,12 +29,9 @@ class Command(BaseCommand):
                     with open(path, 'rb') as f:
                         pdf_obj = PdfFileReader(f)
                         data['number_of_pages'] = pdf_obj.numPages
-                        print("########",data)
                         p = PDFCollectionSerilizers(data=data)
                         if p.is_valid():
                             obj = p.save()
-                        print("$$$$",p.errors)
-                        print("########", obj.id)
                         i = 0
                         while i < data['number_of_pages']:
                             page_obj = pdf_obj.getPage(i)

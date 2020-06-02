@@ -1,9 +1,9 @@
 from sentinel.celery import app
 from celery import Task
 from .models import EmailCollection, TemplateMatchStatusChoice, \
-    SBEmailParsing
+    SBEmailParsing, PDFCollection, PDFData
 from parsers.models import Template, \
-    ParsingTaskChoice
+    ParsingTaskChoice, PDFTemplate
 from django.core.exceptions import ObjectDoesNotExist
 from azure.servicebus import QueueClient, Message, ServiceBusClient
 from custom_logging.custom_logging import get_email_log_variable
@@ -258,6 +258,148 @@ class PublishToSBTask(Task):
             logger.error("Email Object ID Not Passed ", extra=log_fields)
 
 
+class PDFMatchTemplateTask(Task):
+    """
+    PDFMatchTemplateTask class is a celery task to select parser for the PDF
+    """
+    name = 'pdf_match_template'
+
+    def run(self, *args, **kwargs):
+        """
+        Executes process
+        :param args:
+        :param kwargs:
+        :return: ingestion id
+        """
+        try:
+            if not args:
+                raise ObjectDoesNotExist
+            id = args[0]
+            pdf_obj = PDFCollection.objects.get(id=id)
+            return_dict = {'id': id}
+            if not pdf_obj:
+                return return_dict
+            kw = {}
+            fields = pdf_obj.get_matching_fields()
+            IS_MULTIPLE_TEMPLATES = None
+            matched_templates = None
+            for field, map_field in fields.items():
+                IS_MULTIPLE_TEMPLATES = False
+                f = getattr(pdf_obj, map_field)
+
+                kw.update({field: f,})
+                q = PDFTemplate.objects.filter(**kw)
+                matched_templates = q
+            if matched_templates.count() == 1:
+                pdf_obj.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
+                pdf_obj.template = matched_templates[0]
+                pdf_obj.save()
+                IS_MULTIPLE_TEMPLATES = False
+            elif matched_templates.count() > 1:
+                IS_MULTIPLE_TEMPLATES = True
+            else:
+                pdf_obj.template_match_status = TemplateMatchStatusChoice.NO_TEMPLATE_MATCH
+                pdf_obj.save()
+            if IS_MULTIPLE_TEMPLATES:
+                pdf_obj.template_match_status = TemplateMatchStatusChoice.MULTIPLE_TEMPLATE_MATCH
+                pdf_obj.save()
+            log_fields = dict()
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+            logger.info(pdf_obj.get_template_match_status_display(), log_fields)
+            return return_dict
+        except ObjectDoesNotExist:
+            log_fields = dict()
+            log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
+                                                      'sentinel-email-parser')
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+            logger.error("No Email object found", extra=log_fields)
+        return return_dict
+
+
+class PDFExecuteParserTask(Task):
+    name = 'pdf_execute_parser'
+
+    def run(self, *args, **kwargs):
+        try:
+            if not args:
+                raise ObjectDoesNotExist
+            kw = args[0]
+            id = kw.get('id')
+            extracted_fields = {}
+            pdf_obj = PDFCollection.objects.get(id=id)
+            if pdf_obj.template:
+                parsers = pdf_obj.template.pdfparsers.all()
+                pdf_pages = PDFData.objects.filter(pdf=pdf_obj)
+                publish_to_SB = False
+                for page in pdf_pages:
+                    for parser in parsers:
+                        matches = parser.regex.findall(page.content)
+                        if matches:
+                            extracted_fields.update({parser.var_name: matches[0]})
+                    if extracted_fields:
+                        publish_to_SB = True
+                        page.meta = extracted_fields
+                        page.save()
+                print("!!!!!!",publish_to_SB)
+                if publish_to_SB:
+                    print("@@@@@")
+                    publish = PDFPublishToSBTask()
+                    publish.delay(id=id)
+            log_fields = dict()
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+            logger.info("Parsers Executed and extracted variables are "
+                        "added to meta field of Email Object",
+                        extra=log_fields)
+        except ObjectDoesNotExist:
+            log_fields = dict()
+            log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
+                                                      'sentinel-email-parser')
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+            logger.error("No Email object found", extra=log_fields)
+
+
+class PDFPublishToSBTask(Task):
+    name = 'pdf_pusblish_to_sb'
+
+    def run(self, *args, **kwargs):
+        print("#############")
+        try:
+            if not kwargs:
+                raise ObjectDoesNotExist
+            id = kwargs.get('id')
+            pdf_obj= PDFCollection.objects.get(pk=id)
+            log_fields = dict()
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            is_published, error = pdf_obj.publish_order()
+            if is_published:
+                pdf_obj.is_published = True
+                pdf_obj.save()
+                log_fields[EMAILLoggingChoiceField.STATUS] = "Completed"
+                logger.info("published to the {} queue".format(
+                    pdf_obj.template.desination), extra=log_fields)
+            else:
+                log_fields[EMAILLoggingChoiceField.STATUS] = "fail"
+                log_fields['Error'] = error
+                logger.info("Failed to published on the {} queue".format(
+                    pdf_obj.template.desination), extra=log_fields)
+        except ObjectDoesNotExist:
+            log_fields = dict()
+            log_fields['index-name'] = os.environ.get('LOG_INDEX_NAME',
+                                                      'sentinel-email-parser')
+            log_fields[EMAILLoggingChoiceField.TASK] = self.name
+            log_fields[EMAILLoggingChoiceField.STATUS] = "Failed"
+            logger.error("Email Object ID Not Passed ", extra=log_fields)
+
+
+
 app.tasks.register(MatchTemplateTask())
 app.tasks.register(ExecuteParserTask())
 app.tasks.register(PublishToSBTask())
+app.tasks.register(PDFMatchTemplateTask())
+app.tasks.register(PDFExecuteParserTask())
+app.tasks.register(PDFPublishToSBTask())
+

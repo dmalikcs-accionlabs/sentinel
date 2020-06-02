@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Template, Subject, ParsingTask
+from .models import Template, Subject, ParsingTask, PDFTemplate, PDFParsingTask
 
 
 class SubjectInlineAdmin(admin.TabularInline):
@@ -56,3 +56,42 @@ class TemplateAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'updated', 'deleted', 'user')
     date_hierarchy = 'created_at'
 
+
+class PDFParsingTaskInlineAdmin(admin.TabularInline):
+    model = PDFParsingTask
+    list_display = (
+        'id',
+        'title',
+        'regex',
+        'desc',
+        'created_at'
+    )
+    list_filter = ('created_at', 'updated', 'deleted')
+    date_hierarchy = 'created_at'
+
+
+@admin.register(PDFTemplate)
+class TemplateAdmin(admin.ModelAdmin):
+    inlines = [PDFParsingTaskInlineAdmin, ]
+    search_fields = ['email_from', 'email_to', 'pdf_type']
+    fieldsets = (
+        ('', {
+            'fields': (
+                'title',
+                ('email_from', 'email_to',),
+                'pdf_type',
+                'desination',
+            ),
+        }),
+    )
+
+    list_display = (
+        'id',
+        'title',
+        'email_from',
+        'email_to',
+        'pdf_type',
+        'created_at',
+    )
+    list_filter = ('created_at', 'updated', 'deleted', 'user')
+    date_hierarchy = 'created_at'

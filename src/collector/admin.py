@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 from .models import EmailCollection,\
-    EmailAttachment, SBEmailParsing
+    EmailAttachment, SBEmailParsing, PDFCollection, PDFData
 
 
 class EmailAttachmentInlineAdmin(admin.TabularInline):
@@ -110,3 +110,67 @@ class SBEmailParsingAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'updated', 'deleted')
     date_hierarchy = 'created_at'
 
+class PDFDataInlineAdmin(admin.TabularInline):
+    model = PDFData
+    readonly_fields = ['content','page_number']
+    list_display = (
+        'id',
+        'created_at',
+        'updated',
+        'deleted',
+        'content',
+        'page_number',
+        'meta',
+    )
+
+    def has_add_permission(self, request):
+        if request.user and request.user.is_superuser:
+            return True
+        else:
+            return False
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)
+
+
+@admin.register(PDFCollection)
+class PDFCollectionAdmin(admin.ModelAdmin):
+    readonly_fields = ['id', 'location', 'number_of_pages',
+                       'from_address', 'to_addresses', 'client_id', 'type_id']
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'template_match_status',
+                ('from_address', 'to_addresses'),
+                ('client_id','type_id'),
+                ('location', 'number_of_pages'),
+            )
+        }),
+        ('Template', {
+            'classes': ('collapse',),
+            'fields': (('template',),),
+        }),
+    )
+    list_display = (
+        'id',
+        'created_at',
+        'updated',
+        'deleted',
+        'template',
+        'is_published',
+        'created_at',
+    )
+
+    list_filter = ('created_at', 'updated', 'deleted')
+    date_hierarchy = 'created_at'
+    inlines = [PDFDataInlineAdmin, ]
+
+    def has_add_permission(self, request):
+        if request.user and request.user.is_superuser:
+            return True
+        else:
+            return False
+
+    def get_queryset(self, request):
+        return self.model.objects.filter(deleted__isnull=True)

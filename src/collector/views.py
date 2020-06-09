@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework.views import APIView
 import simplejson
 from django.http import HttpResponseBadRequest
@@ -11,7 +11,8 @@ import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-from collector.models import EmailCollection, EmailAttachment
+from collector.models import EmailCollection, \
+    EmailAttachment, ParserExecutionHistory
 from django.utils.timezone import now
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -21,7 +22,8 @@ from custom_logging.choices import EMAILLoggingChoiceField
 import logging
 from sentinel.models import AppToken
 from django.http import HttpResponseForbidden
-
+from django.views.generic.edit import SingleObjectMixin
+from parsers.models import Template
 logger = logging.getLogger('sentinel')
 
 
@@ -56,3 +58,21 @@ class ReadEmailView(APIView):
         return Response("Ok", status=status.HTTP_200_OK)
 
 
+class ExecuteParserView(SingleObjectMixin, APIView):
+    model = EmailCollection
+
+    def get(self, request, *args,  **kwargs):
+        self.object = self.get_object()
+        p = request.GET['parser']
+        template = get_object_or_404(Template,  pk=p)
+        ParserExecutionHistory.objects.create(email=self.object,
+                                              template=self.object.template,
+                                              extracted_data=self.object.meta)
+        self.object.template = template
+        self.object.save()
+        from .tasks import ExecuteParserTask
+        e = ExecuteParserTask()
+        e.delay({'id': self.object.pk, 'model': "EmailCollection"})
+        result = 'Parser {} is scheduled for execution!'.format(template.title)
+
+        return Response({'result': result}, status=status.HTTP_200_OK)

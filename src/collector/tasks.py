@@ -293,10 +293,12 @@ class PDFMatchTemplateTask(Task):
             if matched_templates.count() == 1:
                 pdf_obj.template_match_status = TemplateMatchStatusChoice.TEMPLATE_MATCH_FOUND
                 pdf_obj.template = matched_templates[0]
+                pdf_obj.match_templates.add(*matched_templates)
                 pdf_obj.save()
                 IS_MULTIPLE_TEMPLATES = False
             elif matched_templates.count() > 1:
                 IS_MULTIPLE_TEMPLATES = True
+                pdf_obj.match_templates.add(*matched_templates)
             else:
                 pdf_obj.template_match_status = TemplateMatchStatusChoice.NO_TEMPLATE_MATCH
                 pdf_obj.save()

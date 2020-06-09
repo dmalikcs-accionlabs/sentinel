@@ -136,21 +136,21 @@ class PDFDataInlineAdmin(admin.TabularInline):
 @admin.register(PDFCollection)
 class PDFCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'location', 'number_of_pages',
-                       'from_address', 'to_addresses', 'client_id', 'type_id']
+                       'from_address', 'to_addresses', 'client_id', 'type_id',]
 
     fieldsets = (
         (None, {
             'fields': (
-                'template_match_status',
+                ('template_match_status', 'match_templates', 'template'),
                 ('from_address', 'to_addresses'),
                 ('client_id','type_id'),
                 ('location', 'number_of_pages'),
             )
         }),
-        ('Template', {
-            'classes': ('collapse',),
-            'fields': (('template',),),
-        }),
+        # ('Template', {
+        #     'classes': ('collapse',),
+        #     'fields': (('template',),),
+        # }),
     )
     list_display = (
         'id',

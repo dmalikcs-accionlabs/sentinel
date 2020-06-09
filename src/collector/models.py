@@ -311,9 +311,13 @@ class PDFCollection(BaseTimeStampField):
     template_match_status = models.CharField(max_length=15,
                                              default=TemplateMatchStatusChoice.NEW,
                                              choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
+    match_templates = models.ManyToManyField('parsers.PDFTemplate',
+                                             related_name='match_templates',
+                                             blank=True,
+                                             verbose_name="templates")
     template = models.ForeignKey('parsers.PDFTemplate',
                                  on_delete=models.SET_NULL, null=True,
-                                 blank=True)
+                                 blank=True, verbose_name="pdf parser executed")
 
     class Meta:
         ordering = ('-created_at',)

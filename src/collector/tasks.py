@@ -151,6 +151,8 @@ class ExecuteParserTask(Task):
             return None
 
     def run(self, *args, **kwargs):
+        print(args)
+        print(kwargs)
         try:
             if not args:
                 raise ObjectDoesNotExist

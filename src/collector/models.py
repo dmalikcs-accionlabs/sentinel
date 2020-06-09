@@ -65,7 +65,7 @@ class EmailCollection(BaseTimeStampField):
                                              choices=TEMPLATE_MATCH_STATUS_CHOICE_LIST)
     match_templates = models.ManyToManyField('parsers.Template', related_name='match_templates', blank=True, verbose_name="templates")
     template = models.ForeignKey('parsers.Template',
-                                 on_delete=models.SET_NULL, null=True, blank=True, verbose_name="parser executed")
+                                 on_delete=models.SET_NULL, null=True, blank=True, verbose_name="latest parser executed")
     meta = HStoreField(verbose_name="Extracted data", null=True)
     is_published = models.BooleanField(default=False, editable=False)
 
@@ -355,3 +355,18 @@ class PDFData(BaseTimeStampField):
 
     class Meta:
         verbose_name = 'pdf data'
+
+
+class ParserExecutionHistory(BaseTimeStampField):
+    email = models.ForeignKey(EmailCollection,  on_delete=models.CASCADE)
+    template = models.ForeignKey('parsers.Template', on_delete=models.SET_NULL, null=True)
+    extracted_data = HStoreField(null=True)
+    is_published = models.BooleanField(default=False, editable=False)
+
+    class Meta:
+        verbose_name = 'parser execution history'
+        verbose_name_plural = 'parser execution histories'
+
+    def __str__(self):
+        return str(self.pk)
+

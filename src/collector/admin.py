@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 from .models import EmailCollection,\
-    EmailAttachment, SBEmailParsing, PDFCollection, PDFData
+    EmailAttachment, SBEmailParsing, PDFCollection, PDFData, ParserExecutionHistory
 
 
 class EmailAttachmentInlineAdmin(admin.TabularInline):
@@ -25,15 +25,25 @@ class EmailAttachmentInlineAdmin(admin.TabularInline):
     def get_queryset(self, request):
         return self.model.objects.filter(deleted__isnull=True)
 
+
+class ParserExecutionHistoryInlineAdmin(admin.TabularInline):
+    model = ParserExecutionHistory
+    readonly_fields = ['email', 'template',  'extracted_data', 'is_published']
+
+    def has_add_permission(self, request):
+        return False
+
+
 @admin.register(EmailCollection)
 class EmailCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['body', 'email_date', 'cc', 'email_from', 'subject',
                        'content_ids', 'charsets',
-                       'attachments_count', 'spf', 'meta', 'email_to',]
+                       'attachments_count', 'spf', 'meta', 'email_to', 'template',]
     fieldsets = (
         (None, {
             'fields': (
-                ('template_match_status', 'match_templates', 'template'),
+                ('template_match_status', 'match_templates',),
+                ('template'),
                 ('email_from', 'subject', 'email_to'),
                 'location',
                 ('cc', 'email_date', ),
@@ -42,14 +52,9 @@ class EmailCollectionAdmin(admin.ModelAdmin):
                 'meta'
             )
         }),
-        # ('Template', {
-        #     'classes': ('collapse',),
-        #     'fields': (('template', ),
-        #                ),
-        # }),
     )
     search_fields = ['email_from', 'subject', 'email_to']
-    inlines = [EmailAttachmentInlineAdmin, ]
+    inlines = [EmailAttachmentInlineAdmin, ParserExecutionHistoryInlineAdmin]
     list_display = (
         'id',
         'email_from',
@@ -72,6 +77,14 @@ class EmailCollectionAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return self.model.objects.filter(deleted__isnull=True)
 
+    def formfield_for_dbfield(self, *args, **kwargs):
+        formfield = super().formfield_for_dbfield(*args, **kwargs)
+
+        formfield.widget.can_delete_related = False
+        formfield.widget.can_change_related = False
+        formfield.widget.can_add_related = False
+
+        return formfield
 
 @admin.register(SBEmailParsing)
 class SBEmailParsingAdmin(admin.ModelAdmin):

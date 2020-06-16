@@ -1,9 +1,12 @@
 import json
 from django.core.management.base import BaseCommand
 from azure.servicebus import QueueClient, Message, ServiceBusClient
-from collector.serializer import SBEmailParsingSerilizers, PDFCollectionSerilizers
+from collector.serializer import  PDFCollectionSerilizers
 from collector.models import PDFData
-from PyPDF2 import PdfFileReader
+import io
+from PIL import Image
+import pytesseract
+from wand.image import Image as wi
 
 class Command(BaseCommand):
     help = "My shiny new management command."
@@ -26,19 +29,25 @@ class Command(BaseCommand):
                 data = json.loads(m)['Content']
                 if data.get('pdfLink'):
                     path = data.get('pdfLink')
-                    with open(path, 'rb') as f:
-                        pdf_obj = PdfFileReader(f)
-                        data['number_of_pages'] = pdf_obj.numPages
-                        p = PDFCollectionSerilizers(data=data)
-                        if p.is_valid():
-                            obj = p.save()
-                        i = 0
-                        while i < data['number_of_pages']:
-                            page_obj = pdf_obj.getPage(i)
+                    pdfFile = wi(filename=path, resolution=500)
+                    image = pdfFile.convert('jpeg')
+                    imageBlobs = []
+                    for img in image.sequence:
+                        imgPage = wi(image=img)
+                        imageBlobs.append(imgPage.make_blob('jpeg'))
+                    data['number_of_pages'] = len(imageBlobs)
+                    p = PDFCollectionSerilizers(data=data)
+                    if p.is_valid():
+                        obj = p.save()
+
+                        i = 1
+                        for imgBlob in imageBlobs:
+                            image = Image.open(io.BytesIO(imgBlob))
+                            text = pytesseract.image_to_string(image, lang='eng')
                             pdf_data = {
                                 'pdf': obj,
-                                'content': page_obj.extractText(),
-                                'page_number': i + 1
+                                'content': text,
+                                'page_number': i
                             }
                             PDFData.objects.create(**pdf_data)
                             i += 1

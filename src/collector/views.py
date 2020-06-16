@@ -12,7 +12,8 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from collector.models import EmailCollection, \
-    EmailAttachment, ParserExecutionHistory
+    EmailAttachment, ParserExecutionHistory, PDFParserExecutionHistory, \
+    PDFCollection, PDFData
 from django.utils.timezone import now
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -23,7 +24,7 @@ import logging
 from sentinel.models import AppToken
 from django.http import HttpResponseForbidden
 from django.views.generic.edit import SingleObjectMixin
-from parsers.models import Template
+from parsers.models import Template, PDFTemplate
 logger = logging.getLogger('sentinel')
 
 
@@ -67,12 +68,40 @@ class ExecuteParserView(SingleObjectMixin, APIView):
         template = get_object_or_404(Template,  pk=p)
         ParserExecutionHistory.objects.create(email=self.object,
                                               template=self.object.template,
-                                              extracted_data=self.object.meta)
+                                              extracted_data=self.object.meta,
+                                              is_published=self.object.is_published)
         self.object.template = template
         self.object.save()
         from .tasks import ExecuteParserTask
         e = ExecuteParserTask()
         e.delay({'id': self.object.pk, 'model': "EmailCollection"})
+        result = 'Parser {} is scheduled for execution!'.format(template.title)
+
+        return Response({'result': result}, status=status.HTTP_200_OK)
+
+
+class ExecutePDFParserView(SingleObjectMixin, APIView):
+    model = PDFCollection
+
+    def get(self, request, *args,  **kwargs):
+        self.object = self.get_object()
+        print(self.object.template)
+        p = request.GET['parser']
+        template = get_object_or_404(PDFTemplate,  pk=p)
+        pages = PDFData.objects.filter(pdf=self.object)
+        extracted_data = {'page {}'.format(page.page_number): page.meta for page in pages}
+        # for page in pages:
+        #     extracted_data["page "+ page.page_number] = page.meta
+        print("#######3",extracted_data)
+        PDFParserExecutionHistory.objects.create(pdf=self.object,
+                                                 template=self.object.template,
+                                                 extracted_data=extracted_data,
+                                                 is_published=self.object.is_published )
+        self.object.template = template
+        self.object.save()
+        from .tasks import PDFExecuteParserTask
+        e = PDFExecuteParserTask()
+        e.delay({'id': self.object.pk})
         result = 'Parser {} is scheduled for execution!'.format(template.title)
 
         return Response({'result': result}, status=status.HTTP_200_OK)

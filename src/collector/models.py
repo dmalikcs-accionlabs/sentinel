@@ -317,7 +317,7 @@ class PDFCollection(BaseTimeStampField):
                                              verbose_name="templates")
     template = models.ForeignKey('parsers.PDFTemplate',
                                  on_delete=models.SET_NULL, null=True,
-                                 blank=True, verbose_name="pdf parser executed")
+                                 blank=True, verbose_name="latest pdf parser executed")
 
     class Meta:
         ordering = ('-created_at',)
@@ -370,3 +370,15 @@ class ParserExecutionHistory(BaseTimeStampField):
     def __str__(self):
         return str(self.pk)
 
+class PDFParserExecutionHistory(BaseTimeStampField):
+    pdf = models.ForeignKey(PDFCollection,  on_delete=models.CASCADE)
+    template = models.ForeignKey('parsers.PDFTemplate', on_delete=models.SET_NULL, null=True)
+    extracted_data = HStoreField(null=True)
+    is_published = models.BooleanField(default=False, editable=False)
+
+    class Meta:
+        verbose_name = 'pdf parser execution history'
+        verbose_name_plural = 'pdf parser execution histories'
+
+    def __str__(self):
+        return str(self.pk)

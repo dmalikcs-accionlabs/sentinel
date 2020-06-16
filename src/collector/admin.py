@@ -2,7 +2,8 @@
 from django.contrib import admin
 
 from .models import EmailCollection,\
-    EmailAttachment, SBEmailParsing, PDFCollection, PDFData, ParserExecutionHistory
+    EmailAttachment, SBEmailParsing, PDFCollection, PDFData, \
+    ParserExecutionHistory, PDFParserExecutionHistory
 
 
 class EmailAttachmentInlineAdmin(admin.TabularInline):
@@ -146,24 +147,29 @@ class PDFDataInlineAdmin(admin.TabularInline):
         return self.model.objects.filter(deleted__isnull=True)
 
 
+class PDFParserExecutionHistoryInlineAdmin(admin.TabularInline):
+    model = PDFParserExecutionHistory
+    readonly_fields = ['pdf', 'template',  'extracted_data', 'is_published']
+
+    def has_add_permission(self, request):
+        return False
+
 @admin.register(PDFCollection)
 class PDFCollectionAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'location', 'number_of_pages',
-                       'from_address', 'to_addresses', 'client_id', 'type_id',]
+                       'from_address', 'to_addresses', 'client_id', 'type_id',
+                       'template',]
 
     fieldsets = (
         (None, {
             'fields': (
-                ('template_match_status', 'match_templates', 'template'),
+                ('template_match_status', 'match_templates'),
+                ('template'),
                 ('from_address', 'to_addresses'),
                 ('client_id','type_id'),
                 ('location', 'number_of_pages'),
             )
         }),
-        # ('Template', {
-        #     'classes': ('collapse',),
-        #     'fields': (('template',),),
-        # }),
     )
     list_display = (
         'id',
@@ -177,7 +183,7 @@ class PDFCollectionAdmin(admin.ModelAdmin):
 
     list_filter = ('created_at', 'updated', 'deleted')
     date_hierarchy = 'created_at'
-    inlines = [PDFDataInlineAdmin, ]
+    inlines = [PDFDataInlineAdmin, PDFParserExecutionHistoryInlineAdmin]
 
     def has_add_permission(self, request):
         if request.user and request.user.is_superuser:
@@ -187,3 +193,12 @@ class PDFCollectionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return self.model.objects.filter(deleted__isnull=True)
+
+    def formfield_for_dbfield(self, *args, **kwargs):
+        formfield = super().formfield_for_dbfield(*args, **kwargs)
+
+        formfield.widget.can_delete_related = False
+        formfield.widget.can_change_related = False
+        formfield.widget.can_add_related = False
+
+        return formfield

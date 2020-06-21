@@ -22,9 +22,8 @@ class Command(BaseCommand):
 
         SENTINEL_AP_PDF_PARSING_QUEUE_NAME = settings.SENTINEL_AP_PDF_PARSING_QUEUE_NAME
         SENTINEL_PDF_PARSING_SB_CONNECTION_STRING = settings.SENTINEL_PDF_PARSING_SB_CONNECTION_STRING
-
-
-        sb_client = QueueClient.from_connection_string(SENTINEL_PDF_PARSING_SB_CONNECTION_STRING, SENTINEL_AP_PDF_PARSING_QUEUE_NAME)
+        sb_client = QueueClient.from_connection_string(SENTINEL_PDF_PARSING_SB_CONNECTION_STRING,
+                                                       SENTINEL_AP_PDF_PARSING_QUEUE_NAME)
         if is_verbose: print("Starting service bus listening services on queue {}".format(SENTINEL_AP_PDF_PARSING_QUEUE_NAME))
         with sb_client.get_receiver() as messages:
             for message in messages:

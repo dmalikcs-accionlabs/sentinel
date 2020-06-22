@@ -23,3 +23,4 @@ azure-keyvault-secrets==4.1.0
 Wand==0.6.1
 pytesseract==0.3.4
 Pillow==6.1.0
+

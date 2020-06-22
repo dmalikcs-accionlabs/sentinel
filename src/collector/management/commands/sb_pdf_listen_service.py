@@ -3,10 +3,13 @@ from django.core.management.base import BaseCommand
 from azure.servicebus import QueueClient, Message, ServiceBusClient
 from collector.serializer import  PDFCollectionSerilizers
 from collector.models import PDFData
+
 import io
 from PIL import Image
 import pytesseract
 from wand.image import Image as wi
+from PyPDF2 import PdfFileReader
+from django.conf import settings
 
 class Command(BaseCommand):
     help = "My shiny new management command."
@@ -16,12 +19,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         is_verbose = options.get('verbose')
-        AP_EMAIL_PARSING_QUEUE = 'pdfparserequest'
-        connection_str = \
-            'Endpoint=sb://dynastydev.servicebus.windows.net/;SharedAccessKeyName=read-write;SharedAccessKey=Aj40PBRbF2YtMuyyMAFoU4NhpPfSY3B+4zx187DR6VM='
 
-        sb_client = QueueClient.from_connection_string(connection_str, AP_EMAIL_PARSING_QUEUE)
-        if is_verbose: print("Starting service bus listening services on queue {}".format(AP_EMAIL_PARSING_QUEUE))
+        SENTINEL_AP_PDF_PARSING_QUEUE_NAME = settings.SENTINEL_AP_PDF_PARSING_QUEUE_NAME
+        SENTINEL_PDF_PARSING_SB_CONNECTION_STRING = settings.SENTINEL_PDF_PARSING_SB_CONNECTION_STRING
+
+
+        sb_client = QueueClient.from_connection_string(SENTINEL_PDF_PARSING_SB_CONNECTION_STRING, SENTINEL_AP_PDF_PARSING_QUEUE_NAME)
+        if is_verbose: print("Starting service bus listening services on queue {}".format(SENTINEL_AP_PDF_PARSING_QUEUE_NAME))
         with sb_client.get_receiver() as messages:
             for message in messages:
                 if is_verbose: print(message)

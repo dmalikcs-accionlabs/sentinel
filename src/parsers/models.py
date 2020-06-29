@@ -62,7 +62,8 @@ class Template(BaseTimeStampField):
     subject = RegexField(max_length=128, null=True, flags=re.I, blank=True, help_text="regular expression field")
     user = models.ForeignKey(User, null=True, editable=False, on_delete=models.SET_NULL)
     desination = models.ForeignKey('destination.DestinationQueue', on_delete=models.PROTECT, null=True)
-
+    multiple_events = models.BooleanField(default=False, null=False, blank=False)
+    event_split_string = models.CharField(max_length=75, blank=True)
     def __str__(self):
         return self.title
 
@@ -97,7 +98,7 @@ class ParsingTask(BaseTimeStampField):
                                    choices=ParsingTaskChoice.get_choices())
     regex = RegexField(max_length=128, null=True, flags=re.I, help_text="regular expression field")
     desc = models.TextField(blank=True, editable=False)
-
+    get_multiple_values = models.BooleanField(default=False, null=False, blank=False)
     class Meta:
         verbose_name = 'parser'
         verbose_name_plural = 'parsers'

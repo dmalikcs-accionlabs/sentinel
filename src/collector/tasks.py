@@ -169,22 +169,47 @@ class ExecuteParserTask(Task):
                         matches = parser.regex.findall(e.subject)
                         if matches:
                             extracted_fields.update({parser.var_name: matches[0]})
-                    elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
-                            and e.body_type == 'text':
-                        matches = parser.regex.findall(e.body)
-                        if matches:
-                            extracted_fields.update({parser.var_name: matches[0]})
-                    elif parser.parser_type == ParsingTaskChoice.BODY_PARSER \
-                            and e.body_type == 'html':
-                        soup = BeautifulSoup(e.html)
-                        clean_text = soup.get_text()
-                        matches = parser.regex.findall(clean_text)
-                        if matches:
-                            extracted_fields.update({parser.var_name: matches[0]})
+                    elif parser.parser_type == ParsingTaskChoice.BODY_PARSER:
+                        if e.body_type == 'html':
+                            soup = BeautifulSoup(e.html)
+                            clean_text = soup.get_text()
+                        elif e.body_type == 'text':
+                            clean_text = e.body
+                        else:
+                            raise ObjectDoesNotExist
+                        search_text = list()
+                        if e.template.multiple_events:
+                            search_text = clean_text.split(e.template.event_split_string)
+                        else:
+                            search_text.append(clean_text)
+                        for i in range(len(search_text)):
+                            matches = parser.regex.findall(search_text[i])
+                            if matches :
+                                extracted_values = dict()
+                                if parser.get_multiple_values:
+                                    extracted_values[parser.var_name] = matches
+
+                                else:
+                                    extracted_values[parser.var_name] =matches[0]
+                                if i in extracted_fields.keys():
+                                    extracted_fields[i].update(extracted_values)
+                                else:
+                                    extracted_fields.update({i:extracted_values})
                     else:
                         pass
 
             if extracted_fields:
+                for event, data in extracted_fields.items():
+                    if not isinstance(data, dict):
+                        continue
+                    a = [dict() for i in range(len(list(data.values())[0]))]
+                    for key, value in data.items():
+                        if not isinstance(value, list):
+                            a = extracted_fields[event]
+                            continue
+                        for i in range(len(value)):
+                            a[i].update({key: data[key][i]})
+                    extracted_fields[event] = a
                 e.meta = extracted_fields
                 e.save()
 

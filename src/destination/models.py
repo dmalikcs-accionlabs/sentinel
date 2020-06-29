@@ -30,8 +30,8 @@ class DestinationQueue(BaseTimeStampField):
         queue_client = sb_client
         if isinstance(email, PDFCollection):
             pages = PDFData.objects.filter(pdf=email)
-            content= dict()
-            ticket_list= list()
+            content = dict()
+            ticket_list = list()
             for page in pages:
                 if page.meta:
                     ticket = {key: value for key, value in page.meta.items()} if page.meta else dict()
@@ -49,6 +49,7 @@ class DestinationQueue(BaseTimeStampField):
                 content["SenderAddress"] = email.email_from
                 content["EmailDate"] = email.email_date
             elif isinstance(email, SBEmailParsing):
+                content['ClientID'] = email.client_id
                 content["SenderAddress"] = email.from_address
                 content["EmailDate"] = email.created_at
         queue_client.send(Message(json.dumps({

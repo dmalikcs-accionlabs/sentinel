@@ -29,6 +29,7 @@ urlpatterns = [
     path('', home, name="home"),
     path('admin/', admin.site.urls),
     path('collector/', include(('collector.urls', 'collector'), namespace='collector'), ),
+
 ]
 
 if 'django_auth_adfs' in settings.INSTALLED_APPS:

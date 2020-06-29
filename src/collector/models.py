@@ -357,6 +357,7 @@ class PDFData(BaseTimeStampField):
         verbose_name = 'pdf data'
 
 
+
 class ParserExecutionHistory(BaseTimeStampField):
     email = models.ForeignKey(EmailCollection,  on_delete=models.CASCADE)
     template = models.ForeignKey('parsers.Template', on_delete=models.SET_NULL, null=True)

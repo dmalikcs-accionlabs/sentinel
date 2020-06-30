@@ -49,6 +49,7 @@ class DestinationQueue(BaseTimeStampField):
                 content["SenderAddress"] = email.email_from
                 content["EmailDate"] = email.email_date
             elif isinstance(email, SBEmailParsing):
+                content['InboxUsername'] = email.inbox_username
                 content['ClientID'] = email.client_id
                 content["SenderAddress"] = email.from_address
                 content["EmailDate"] = email.created_at

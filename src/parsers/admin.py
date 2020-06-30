@@ -40,6 +40,7 @@ class TemplateAdmin(admin.ModelAdmin):
                 'title',
                 ('email_from', 'email_to',),
                 'subject',
+                ('multiple_events','event_split_string'),
                 'desination',
             ),
         }),
@@ -52,6 +53,7 @@ class TemplateAdmin(admin.ModelAdmin):
         'email_to',
         'subject',
         'created_at',
+        'multiple_events',
     )
     list_filter = ('created_at', 'updated', 'deleted', 'user')
     date_hierarchy = 'created_at'
